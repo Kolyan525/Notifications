@@ -2,7 +2,7 @@
 
 namespace NotificationsDAL.Models
 {
-    public class NotificationsContext
+    public class NotificationsContext : DbContext
     {
         public NotificationsContext(DbContextOptions<NotificationsContext> options)
             : base(options)
