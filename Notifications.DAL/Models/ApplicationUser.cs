@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 
-namespace NotificationsDAL.Models
+namespace Notifications.DAL.Models
 {
     public class ApplicationUser : IdentityUser
     {

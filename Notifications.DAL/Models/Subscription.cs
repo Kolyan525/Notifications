@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace NotificationsDAL.Models
+namespace Notifications.DAL.Models
 {
     public class Subscription
     {

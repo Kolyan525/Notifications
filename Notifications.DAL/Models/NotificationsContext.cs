@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace NotificationsDAL.Models
+namespace Notifications.DAL.Models
 {
     public class NotificationsContext : DbContext
     {
@@ -10,10 +10,12 @@ namespace NotificationsDAL.Models
         }
 
         public DbSet<ApplicationUser> Users { get; set; }
+        public DbSet<NotificationType> NotificationTypes { get; set; }
+        public DbSet<NotificationTypeSubscription> NotificationType
+        { get; set; }
         public DbSet<Event> Events { get; set; }
+        public DbSet<Category> Categories { get; set; }
         public DbSet<Subscription> Subscriptions { get; set; }
         public DbSet<SubscriptionEvent> SubscriptionEvents { get; set; }
-        public DbSet<NotificationType> NotificationTypes { get; set; }
-        public DbSet<NotificationTypeSubscription> NotificationTypeSubscriptions { get; set; }
     }
 }

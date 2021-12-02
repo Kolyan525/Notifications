@@ -1,4 +1,4 @@
-﻿namespace NotificationsDAL.Models
+﻿namespace Notifications.DAL.Models
 {
     public class NotificationType
     {

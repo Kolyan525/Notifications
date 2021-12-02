@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace NotificationsDAL.Models
+namespace Notifications.DAL.Models
 {
     public class Event
     {
@@ -11,7 +11,7 @@ namespace NotificationsDAL.Models
         public string ShortDesc { get; set; }
         public string Description { get; set; }
         public string EventLink { get; set; }
-        public List<string> Category { get; set; }
+        public ICollection<Category> Categories { get; set; }
 
         public ICollection<Subscription> Subscriptions { get; set; }
 

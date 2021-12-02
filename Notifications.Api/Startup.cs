@@ -13,8 +13,9 @@ using System.Linq;
 using System.Net.NetworkInformation;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Notifications.DAL.Models;
 
-namespace NotificationsDAL
+namespace Notifications.Api
 {
     public class Startup
     {
@@ -30,6 +31,9 @@ namespace NotificationsDAL
         {
 
             services.AddControllers();
+            string connection = Configuration.GetConnectionString("DefaultConnection");
+            services.AddDbContext<NotificationsContext>(options => options.UseSqlServer(connection));
+
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "NotificationsDAL", Version = "v1" });
@@ -43,7 +47,7 @@ namespace NotificationsDAL
             {
                 app.UseDeveloperExceptionPage();
                 app.UseSwagger();
-                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "NotificationsDAL v1"));
+                //app.UseSwagger(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "NotificationsDAL v1"));
             }
 
             app.UseHttpsRedirection();

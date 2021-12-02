@@ -1,6 +1,6 @@
 using System;
 
-namespace NotificationsDAL
+namespace Notifications.Api
 {
     public class WeatherForecast
     {

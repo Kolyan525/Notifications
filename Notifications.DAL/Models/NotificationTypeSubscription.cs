@@ -1,8 +1,11 @@
-﻿namespace NotificationsDAL.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Notifications.DAL.Models
 {
     public class NotificationTypeSubscription
     {
         // PK for NotificaitonTypeSubscription
+        [Key]
         public long NotificaitonTypeSubscriptionId { get; set; }
 
         // FK for NotificationType
