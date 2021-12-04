@@ -16,16 +16,17 @@ namespace Notifications.Api.Controllers
             "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
         };
 
-        private readonly ILogger<WeatherForecastController> _logger;
+        static readonly log4net.ILog _log4net = log4net.LogManager.GetLogger(typeof(WeatherForecastController));
 
-        public WeatherForecastController(ILogger<WeatherForecastController> logger)
-        {
-            _logger = logger;
-        }
+        //public WeatherForecastController(ILogger<WeatherForecastController> logger)
+        //{
+        //    _logger = logger;
+        //}
 
         [HttpGet]
         public IEnumerable<WeatherForecast> Get()
         {
+            _log4net.Info("Hello logging world log4net!");
             var rng = new Random();
             return Enumerable.Range(1, 5).Select(index => new WeatherForecast
             {
