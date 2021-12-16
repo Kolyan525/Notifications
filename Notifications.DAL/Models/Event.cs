@@ -13,7 +13,8 @@ namespace Notifications.DAL.Models
         public string EventLink { get; set; }
         public ICollection<Category> Categories { get; set; }
 
-        public ICollection<Subscription> Subscriptions { get; set; }
+        // ???
+        public ICollection<SubscriptionEvent> SubscriptionEvents { get; set; }
 
         public DateTime StartAt { get; set; }
     }

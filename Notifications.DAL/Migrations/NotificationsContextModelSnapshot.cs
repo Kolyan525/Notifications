@@ -6,6 +6,8 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Notifications.DAL.Models;
 
+#nullable disable
+
 namespace Notifications.DAL.Migrations
 {
     [DbContext(typeof(NotificationsContext))]
@@ -15,9 +17,10 @@ namespace Notifications.DAL.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .UseIdentityColumns()
-                .HasAnnotation("Relational:MaxIdentifierLength", 128)
-                .HasAnnotation("ProductVersion", "5.0.0");
+                .HasAnnotation("ProductVersion", "6.0.0")
+                .HasAnnotation("Relational:MaxIdentifierLength", 128);
+
+            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
 
             modelBuilder.Entity("Notifications.DAL.Models.ApplicationUser", b =>
                 {
@@ -81,8 +84,9 @@ namespace Notifications.DAL.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .UseIdentityColumn();
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
                     b.Property<string>("CategoryName")
                         .HasColumnType("nvarchar(max)");
@@ -101,8 +105,9 @@ namespace Notifications.DAL.Migrations
                 {
                     b.Property<long>("EventId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .UseIdentityColumn();
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("EventId"), 1L, 1);
 
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
@@ -128,8 +133,9 @@ namespace Notifications.DAL.Migrations
                 {
                     b.Property<long>("NotificationTypeId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .UseIdentityColumn();
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("NotificationTypeId"), 1L, 1);
 
                     b.Property<string>("NotificationName")
                         .HasColumnType("nvarchar(max)");
@@ -143,8 +149,9 @@ namespace Notifications.DAL.Migrations
                 {
                     b.Property<long>("NotificaitonTypeSubscriptionId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .UseIdentityColumn();
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("NotificaitonTypeSubscriptionId"), 1L, 1);
 
                     b.Property<string>("DiscordKey")
                         .HasColumnType("nvarchar(max)");
@@ -167,22 +174,18 @@ namespace Notifications.DAL.Migrations
 
                     b.HasIndex("SubscriptionId");
 
-                    b.ToTable("NotificationTypeSubscriptions");
+                    b.ToTable("NotificationType");
                 });
 
             modelBuilder.Entity("Notifications.DAL.Models.Subscription", b =>
                 {
                     b.Property<long>("SubscriptionId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .UseIdentityColumn();
-
-                    b.Property<long?>("EventId")
                         .HasColumnType("bigint");
 
-                    b.HasKey("SubscriptionId");
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("SubscriptionId"), 1L, 1);
 
-                    b.HasIndex("EventId");
+                    b.HasKey("SubscriptionId");
 
                     b.ToTable("Subscriptions");
                 });
@@ -191,8 +194,9 @@ namespace Notifications.DAL.Migrations
                 {
                     b.Property<long>("SubscriptionEventId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .UseIdentityColumn();
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("SubscriptionEventId"), 1L, 1);
 
                     b.Property<long>("EventId")
                         .HasColumnType("bigint");
@@ -235,23 +239,16 @@ namespace Notifications.DAL.Migrations
                     b.Navigation("Subscription");
                 });
 
-            modelBuilder.Entity("Notifications.DAL.Models.Subscription", b =>
-                {
-                    b.HasOne("Notifications.DAL.Models.Event", null)
-                        .WithMany("Subscriptions")
-                        .HasForeignKey("EventId");
-                });
-
             modelBuilder.Entity("Notifications.DAL.Models.SubscriptionEvent", b =>
                 {
                     b.HasOne("Notifications.DAL.Models.Event", "Event")
-                        .WithMany()
+                        .WithMany("SubscriptionEvents")
                         .HasForeignKey("EventId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Notifications.DAL.Models.Subscription", "Subscription")
-                        .WithMany()
+                        .WithMany("SubscriptionEvents")
                         .HasForeignKey("SubscriptionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -265,12 +262,14 @@ namespace Notifications.DAL.Migrations
                 {
                     b.Navigation("Categories");
 
-                    b.Navigation("Subscriptions");
+                    b.Navigation("SubscriptionEvents");
                 });
 
             modelBuilder.Entity("Notifications.DAL.Models.Subscription", b =>
                 {
                     b.Navigation("NotificaitonTypeSubscriptions");
+
+                    b.Navigation("SubscriptionEvents");
                 });
 #pragma warning restore 612, 618
         }

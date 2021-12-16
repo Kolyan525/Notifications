@@ -1,9 +1,11 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
+#nullable disable
+
 namespace Notifications.DAL.Migrations
 {
-    public partial class InitialCreate : Migration
+    public partial class InitialMigration : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -35,6 +37,18 @@ namespace Notifications.DAL.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_NotificationTypes", x => x.NotificationTypeId);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Subscriptions",
+                columns: table => new
+                {
+                    SubscriptionId = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Subscriptions", x => x.SubscriptionId);
                 });
 
             migrationBuilder.CreateTable(
@@ -80,31 +94,11 @@ namespace Notifications.DAL.Migrations
                         name: "FK_Categories_Events_EventId",
                         column: x => x.EventId,
                         principalTable: "Events",
-                        principalColumn: "EventId",
-                        onDelete: ReferentialAction.Restrict);
+                        principalColumn: "EventId");
                 });
 
             migrationBuilder.CreateTable(
-                name: "Subscriptions",
-                columns: table => new
-                {
-                    SubscriptionId = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    EventId = table.Column<long>(type: "bigint", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Subscriptions", x => x.SubscriptionId);
-                    table.ForeignKey(
-                        name: "FK_Subscriptions_Events_EventId",
-                        column: x => x.EventId,
-                        principalTable: "Events",
-                        principalColumn: "EventId",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "NotificationTypeSubscriptions",
+                name: "NotificationType",
                 columns: table => new
                 {
                     NotificaitonTypeSubscriptionId = table.Column<long>(type: "bigint", nullable: false)
@@ -117,15 +111,15 @@ namespace Notifications.DAL.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_NotificationTypeSubscriptions", x => x.NotificaitonTypeSubscriptionId);
+                    table.PrimaryKey("PK_NotificationType", x => x.NotificaitonTypeSubscriptionId);
                     table.ForeignKey(
-                        name: "FK_NotificationTypeSubscriptions_NotificationTypes_NotificationTypeId",
+                        name: "FK_NotificationType_NotificationTypes_NotificationTypeId",
                         column: x => x.NotificationTypeId,
                         principalTable: "NotificationTypes",
                         principalColumn: "NotificationTypeId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_NotificationTypeSubscriptions_Subscriptions_SubscriptionId",
+                        name: "FK_NotificationType_Subscriptions_SubscriptionId",
                         column: x => x.SubscriptionId,
                         principalTable: "Subscriptions",
                         principalColumn: "SubscriptionId",
@@ -164,13 +158,13 @@ namespace Notifications.DAL.Migrations
                 column: "EventId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_NotificationTypeSubscriptions_NotificationTypeId",
-                table: "NotificationTypeSubscriptions",
+                name: "IX_NotificationType_NotificationTypeId",
+                table: "NotificationType",
                 column: "NotificationTypeId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_NotificationTypeSubscriptions_SubscriptionId",
-                table: "NotificationTypeSubscriptions",
+                name: "IX_NotificationType_SubscriptionId",
+                table: "NotificationType",
                 column: "SubscriptionId");
 
             migrationBuilder.CreateIndex(
@@ -182,11 +176,6 @@ namespace Notifications.DAL.Migrations
                 name: "IX_SubscriptionEvents_SubscriptionId",
                 table: "SubscriptionEvents",
                 column: "SubscriptionId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Subscriptions_EventId",
-                table: "Subscriptions",
-                column: "EventId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -195,7 +184,7 @@ namespace Notifications.DAL.Migrations
                 name: "Categories");
 
             migrationBuilder.DropTable(
-                name: "NotificationTypeSubscriptions");
+                name: "NotificationType");
 
             migrationBuilder.DropTable(
                 name: "SubscriptionEvents");
@@ -207,10 +196,10 @@ namespace Notifications.DAL.Migrations
                 name: "NotificationTypes");
 
             migrationBuilder.DropTable(
-                name: "Subscriptions");
+                name: "Events");
 
             migrationBuilder.DropTable(
-                name: "Events");
+                name: "Subscriptions");
         }
     }
 }

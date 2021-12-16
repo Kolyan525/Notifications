@@ -9,5 +9,6 @@ namespace Notifications.DAL.Models
 
         // Collection of NotificaitonTypeSubscriptions
         public ICollection<NotificationTypeSubscription> NotificaitonTypeSubscriptions { get; set; }
+        public virtual ICollection<SubscriptionEvent> SubscriptionEvents { get; set; }
     }
 }
