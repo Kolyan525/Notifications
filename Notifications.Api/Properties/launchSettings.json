@@ -17,7 +17,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
-    "NotificationsDAL": {
+    "NotificationsApi": {
       "commandName": "Project",
       "dotnetRunMessages": "true",
       "launchBrowser": true,

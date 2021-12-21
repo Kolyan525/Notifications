@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Notifications.DAL.Models;
 
@@ -11,9 +12,10 @@ using Notifications.DAL.Models;
 namespace Notifications.DAL.Migrations
 {
     [DbContext(typeof(NotificationsContext))]
-    partial class NotificationsContextModelSnapshot : ModelSnapshot
+    [Migration("20211220145551_AddedSerilogAndRemovedIsRequired")]
+    partial class AddedSerilogAndRemovedIsRequired
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -94,18 +96,6 @@ namespace Notifications.DAL.Migrations
                     b.HasKey("CategoryId");
 
                     b.ToTable("Categories");
-
-                    b.HasData(
-                        new
-                        {
-                            CategoryId = 1L,
-                            CategoryName = "Universal"
-                        },
-                        new
-                        {
-                            CategoryId = 2L,
-                            CategoryName = "Quarantine"
-                        });
                 });
 
             modelBuilder.Entity("Notifications.DAL.Models.Event", b =>
@@ -134,26 +124,6 @@ namespace Notifications.DAL.Migrations
                     b.HasKey("EventId");
 
                     b.ToTable("Events");
-
-                    b.HasData(
-                        new
-                        {
-                            EventId = 1L,
-                            Description = "Dear students! for the next three weeks we need all together (students and teachers) to unite so as not to lose precious time of the second semester. Therefore, an online learning will be established.",
-                            EventLink = "https://docs.google.com/document/d/1X7SwM3uUyATgTzd6XIfqop1moM26FsjXfiMxfZqQCZA/edit",
-                            ShortDesc = "Very short description for online learning",
-                            StartAt = new DateTime(2021, 12, 21, 0, 0, 0, 0, DateTimeKind.Local),
-                            Title = "Online Learning in NaU OA Starts"
-                        },
-                        new
-                        {
-                            EventId = 2L,
-                            Description = "Congratulations, My name is Natalia, I deal with international rankings and NaUAA membership in them. This year, U - Multirank is conducting a survey among students majoring in Computer Science. Please contribute to the high place of NaUAA in this ranking by filling out a small survey.I quote the letter",
-                            EventLink = "https://che-survey.de/uc/umr2022/ ",
-                            ShortDesc = "Very short description for international rating",
-                            StartAt = new DateTime(2021, 12, 20, 11, 24, 0, 0, DateTimeKind.Unspecified),
-                            Title = "International rating"
-                        });
                 });
 
             modelBuilder.Entity("Notifications.DAL.Models.EventCategory", b =>

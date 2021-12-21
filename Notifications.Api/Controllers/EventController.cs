@@ -1,4 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Notifications.DAL.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,11 +15,29 @@ namespace Notifications.Api.Controllers
     [ApiController]
     public class EventController : ControllerBase
     {
+        NotificationsContext context;
+        ILogger<EventController> logger;
+
+        public EventController(NotificationsContext context, ILogger<EventController> logger)
+        {
+            this.context = context;
+            this.logger = logger;
+        }
+
         // GET: api/<EventController>
         [HttpGet]
-        public IEnumerable<string> Get()
+        public async Task<IActionResult> GetEvents()
         {
-            return new string[] { "value1", "value2" };
+            try
+            {
+                var events = await context.Events.ToListAsync();
+                return Ok(events);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, $"Something went wrong in the {nameof(GetEvents)}");
+                return StatusCode(500, "Internal Server Error. Please Try Again Later.");
+            }
         }
 
         // GET api/<EventController>/5
