@@ -7,6 +7,10 @@ using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using Microsoft.EntityFrameworkCore;
 using Notifications.DAL.Models;
+using AutoMapper;
+using Notifications.DTO.Configurations;
+using Notifications.Api.IRepository;
+using Notifications.Api.Repository;
 
 namespace Notifications.Api
 {
@@ -22,11 +26,15 @@ namespace Notifications.Api
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-
             services.AddControllers()
-                .AddNewtonsoftJson();
+                .AddNewtonsoftJson(op => op.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
+
             string connection = Configuration.GetConnectionString("DefaultConnection");
             services.AddDbContext<NotificationsContext>(options => options.UseSqlServer(connection));
+
+            services.AddAutoMapper(typeof(MapperInitializer));
+
+            services.AddTransient<IUnitOfWork, UnitOfWork>();
 
             services.AddSwaggerGen(c =>
             {
@@ -54,6 +62,8 @@ namespace Notifications.Api
             app.UseRouting();
 
             app.UseAuthorization();
+
+            Bot.GetBotClientAsync().Wait();
 
             app.UseEndpoints(endpoints =>
             {

@@ -1,7 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Notifications.Api.IRepository;
 using Notifications.DAL.Models;
+using Notifications.DTO.DTOs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,13 +18,15 @@ namespace Notifications.Api.Controllers
     [ApiController]
     public class CategoriesController : ControllerBase
     {
-        NotificationsContext context;
-        ILogger<CategoriesController> logger;
+        readonly IUnitOfWork unitOfWork;
+        readonly ILogger<CategoriesController> logger;
+        readonly IMapper mapper;
 
-        public CategoriesController(NotificationsContext context, ILogger<CategoriesController> logger)
+        public CategoriesController(IUnitOfWork unitOfWork, ILogger<CategoriesController> logger, IMapper mapper)
         {
-            this.context = context;
+            this.unitOfWork = unitOfWork;
             this.logger = logger;
+            this.mapper = mapper;
         }
 
         // GET: api/<CategoriesController>
@@ -30,37 +35,42 @@ namespace Notifications.Api.Controllers
         {
             try
             {
-                var categories = await context.Categories.ToListAsync();
+                var categories = await unitOfWork.Categories.GetAll();
+                var results = mapper.Map<IList<CategoryDTO>>(categories);
                 logger.LogInformation($"Successfully executed {nameof(GetCategories)}");
-                return Ok(categories);
+                return Ok(results);
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, $"Something went wrong in the {nameof(GetCategories)}");
-                return StatusCode(500, "Internal Server Error. Please Try Again Later.");
+                return StatusCode(500, "Internal Server Error. Please try again later.");
             }
         }
 
         // GET api/<CategoriesController>/5
-        [HttpGet("{id}")]
+        [HttpGet("{id:long}")]
         public async Task<ActionResult<Category>> GetCategory(long id)
         {
-            var category = await context.Categories.FindAsync(id);
-
-            if (category == null)
+            try
             {
-                return NotFound();
+                var category = await unitOfWork.Categories.Get(x => x.CategoryId == id, new List<string> { "EventCategories" });
+                var result = mapper.Map<CategoryDTO>(category);
+                logger.LogInformation($"Successfully executed {nameof(GetCategories)}");
+                return Ok(result);
             }
-
-            return category;
+            catch (Exception ex)
+            {
+                logger.LogError(ex, $"Something went wrong in the {nameof(GetCategory)}");
+                return StatusCode(500, "Internal Server Error. Please try again later.");
+            }
         }
 
         // POST api/<CategoriesController>
         [HttpPost]
         public async Task<ActionResult<Category>> PostCategory(Category category)
         {
-            context.Categories.Add(category);
-            await context.SaveChangesAsync();
+            await unitOfWork.Categories.Insert(category);
+            await unitOfWork.Save();
 
             return CreatedAtAction(nameof(GetCategory), new { id = category.CategoryId }, category);
         }
@@ -74,7 +84,7 @@ namespace Notifications.Api.Controllers
                 return BadRequest();
             }
 
-            var ctgry = await context.Categories.FindAsync(id);
+            var ctgry = await unitOfWork.Categories.Get(x => x.CategoryId == id);
             if (ctgry == null)
             {
                 return NotFound();
@@ -84,12 +94,12 @@ namespace Notifications.Api.Controllers
 
             try
             {
-                await context.SaveChangesAsync();
+                await unitOfWork.Save();
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, $"Something went wrong in the {nameof(UpdateCategory)}");
-                return StatusCode(500, "Internal Server Error. Please Try Again Later.");
+                return StatusCode(500, "Internal Server Error. Please try again later.");
             }
 
             return NoContent();
@@ -99,15 +109,15 @@ namespace Notifications.Api.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCategory(long id)
         {
-            var category = await context.Categories.FindAsync(id);
+            var category = await unitOfWork.Categories.Get(x => x.CategoryId == id);
 
             if (category == null)
             {
                 return NotFound();
             }
 
-            context.Categories.Remove(category);
-            await context.SaveChangesAsync();
+            await unitOfWork.Categories.Delete(id);
+            await unitOfWork.Save();
 
             return NoContent();
         }
