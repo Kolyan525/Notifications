@@ -1,17 +1,13 @@
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Threading.Tasks;
+using Notifications.DAL.DbInitializer;
+using Notifications.DAL.Models;
 using Serilog;
 using Serilog.Events;
+using System;
 using X.Extensions.Logging.Telegram;
-using Microsoft.Extensions.Options;
 
 namespace Notifications.Api
 {
@@ -19,24 +15,27 @@ namespace Notifications.Api
     {
         public static void Main(string[] args)
         {
-            //var options = new TelegramLoggerOptions
-            //{
-            //    AccessToken = "5039937835:AAGz2JqiF3S8SKuqs_6UdRMX-p4nQ86K00U",
-            //    ChatId = "-1001669767630",
-            //    LogLevel = LogLevel.Information,
-            //    Source = "Notifications App"
-            //};
+            /* var options = new TelegramLoggerOptions
+            {
+                AccessToken = "5039937835:AAGz2JqiF3S8SKuqs_6UdRMX-p4nQ86K00U",
+                ChatId = "-1001669767630",
+                LogLevel = LogLevel.Information,
+                Source = "Notifications App"
+            };
 
-            //var factory = LoggerFactory.Create(builder =>
-            //{
-            //    builder
-            //        .ClearProviders()
-            //        .AddTelegram(options)
-            //        .AddConsole();
-            //}
-            //);
+            var factory = LoggerFactory.Create(builder =>
+            {
+                builder
+                    .ClearProviders()
+                    .AddTelegram(options)
+                    .AddConsole();
+            }
+            );
 
-            //CreateHostBuilder(args).Build().Run();
+            CreateHostBuilder(args).Build().Run();
+            */
+
+            var host = CreateHostBuilder(args).Build();
 
             Log.Logger = new LoggerConfiguration()
                 .WriteTo.File(
@@ -49,7 +48,10 @@ namespace Notifications.Api
             try
             {
                 Log.Information("Notifications App Is Starting");
-                CreateHostBuilder(args).Build().Run();
+
+                SeedDatabase(host);
+
+                host.Run();
             }
             catch (Exception ex)
             {
@@ -76,60 +78,81 @@ namespace Notifications.Api
                     webBuilder.UseStartup<Startup>();
                 });
 
-        //public class ExampleClass
-        //{
-        //}
+        static void SeedDatabase(IHost host)
+        {
+            using (var scope = host.Services.CreateScope())
+            {
+                var services = scope.ServiceProvider;
+                try
+                {
+                    var context = services.GetRequiredService<NotificationsContext>();
 
-        //public class AnotherExampleClass
-        //{
-        //}
+                    DbInitializer.Initialize(context, services);
+                }
+                catch (Exception ex)
+                {
+                    var logger = services.GetRequiredService<ILogger<Program>>();
+                    logger.LogError(ex, "An error occurred while seeding the database");
+                }
+            }
+        }
 
-        //static void Main(string[] args)
-        //{
-        //    var options = new TelegramLoggerOptions
-        //    {
-        //        AccessToken = "5039937835:AAGz2JqiF3S8SKuqs_6UdRMX-p4nQ86K00U",
-        //        ChatId = "-1001669767630",
-        //        LogLevel = LogLevel.Information,
-        //        Source = "TEST APP",
-        //        UseEmoji = true
-        //    };
+        /*
+        public class ExampleClass
+        {
+        }
 
-        //    var factory = LoggerFactory.Create(builder =>
-        //    {
-        //        builder
-        //            .ClearProviders()
-        //            .AddTelegram(options)
-        //            .AddConsole();
-        //    }
-        //    );
+        public class AnotherExampleClass
+        {
+        }
 
-        //    var logger1 = factory.CreateLogger<ExampleClass>();
-        //    var logger2 = factory.CreateLogger<AnotherExampleClass>();
+        static void Main(string[] args)
+        {
+            var options = new TelegramLoggerOptions
+            {
+                AccessToken = "5039937835:AAGz2JqiF3S8SKuqs_6UdRMX-p4nQ86K00U",
+                ChatId = "-1001669767630",
+                LogLevel = LogLevel.Information,
+                Source = "TEST APP",
+                UseEmoji = true
+            };
 
-        //    for (var i = 0; i < 1; i++)
-        //    {
-        //        logger1.LogTrace($"Message {i}");
-        //        logger2.LogDebug($"Debug message text {i}");
-        //        logger1.LogInformation($"Information message text {i}");
+            var factory = LoggerFactory.Create(builder =>
+            {
+                builder
+                    .ClearProviders()
+                    .AddTelegram(options)
+                    .AddConsole();
+            }
+            );
 
-        //        try
-        //        {
-        //            throw new SystemException("Exception message description. <br /> This message contains " +
-        //                                      "<html> <tags /> And some **special** symbols _");
-        //        }
-        //        catch (Exception exception)
-        //        {
-        //            logger2.LogWarning(exception, $"Warning message text {i}");
-        //            logger1.LogError(exception, $"Error message  text {i}");
-        //            logger2.LogCritical(exception, $"Critical error message  text {i}");
-        //        }
+            var logger1 = factory.CreateLogger<ExampleClass>();
+            var logger2 = factory.CreateLogger<AnotherExampleClass>();
 
-        //        Task.WaitAll(Task.Delay(500));
-        //    }
+            for (var i = 0; i < 1; i++)
+            {
+                logger1.LogTrace($"Message {i}");
+                logger2.LogDebug($"Debug message text {i}");
+                logger1.LogInformation($"Information message text {i}");
+
+                try
+                {
+                    throw new SystemException("Exception message description. <br /> This message contains " +
+                                              "<html> <tags /> And some **special** symbols _");
+                }
+                catch (Exception exception)
+                {
+                    logger2.LogWarning(exception, $"Warning message text {i}");
+                    logger1.LogError(exception, $"Error message  text {i}");
+                    logger2.LogCritical(exception, $"Critical error message  text {i}");
+                }
+
+                Task.WaitAll(Task.Delay(500));
+            }
 
 
-        //    Console.WriteLine("Hello World!");
-        //}
+            Console.WriteLine("Hello World!");
+        }
+        */
     }
 }

@@ -1,16 +1,15 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
-using Microsoft.EntityFrameworkCore;
-using Notifications.DAL.Models;
-using AutoMapper;
-using Notifications.DTO.Configurations;
 using Notifications.Api.IRepository;
 using Notifications.Api.Repository;
+using Notifications.DAL.Models;
+using Notifications.DTO.Configurations;
 
 namespace Notifications.Api
 {
@@ -31,6 +30,14 @@ namespace Notifications.Api
 
             string connection = Configuration.GetConnectionString("DefaultConnection");
             services.AddDbContext<NotificationsContext>(options => options.UseSqlServer(connection));
+
+            services.AddAuthentication();
+            services.ConfigureIdentity();
+
+            //services.AddIdentityCore<ApplicationUser>(options =>
+            //{
+            //    options.SignIn.RequireConfirmedAccount = false;
+            //});
 
             services.AddAutoMapper(typeof(MapperInitializer));
 
@@ -62,8 +69,6 @@ namespace Notifications.Api
             app.UseRouting();
 
             app.UseAuthorization();
-
-            Bot.GetBotClientAsync().Wait();
 
             app.UseEndpoints(endpoints =>
             {

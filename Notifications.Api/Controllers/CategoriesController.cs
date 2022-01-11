@@ -1,13 +1,12 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Notifications.Api.IRepository;
 using Notifications.DAL.Models;
 using Notifications.DTO.DTOs;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -31,6 +30,8 @@ namespace Notifications.Api.Controllers
 
         // GET: api/<CategoriesController>
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetCategories()
         {
             try
@@ -49,6 +50,8 @@ namespace Notifications.Api.Controllers
 
         // GET api/<CategoriesController>/5
         [HttpGet("{id:long}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<Category>> GetCategory(long id)
         {
             try
@@ -67,7 +70,8 @@ namespace Notifications.Api.Controllers
 
         // POST api/<CategoriesController>
         [HttpPost]
-        public async Task<ActionResult<Category>> PostCategory(Category category)
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        public async Task<ActionResult<Category>> PostCategory(Category category) // TODO: DTO
         {
             await unitOfWork.Categories.Insert(category);
             await unitOfWork.Save();

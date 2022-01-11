@@ -1,0 +1,65 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="Notifications.DAL.Models.Category">
+    <Position X="4" Y="3.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAgAAAAAAAAQAACAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Models\Category.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Notifications.DAL.Models.Event">
+    <Position X="1.5" Y="0.5" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAgAAAgAEgAAAAAAAQAEAAAAgAAAAAAAAAAEAA=</HashCode>
+      <FileName>Models\Event.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Notifications.DAL.Models.EventCategory">
+    <Position X="4.25" Y="0.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAgAAAAAgAAAAAAAAAAAgBAAAAAAAAAAAAACAA=</HashCode>
+      <FileName>Models\EventCategory.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Event" />
+      <Property Name="Category" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="Notifications.DAL.Models.NotificationType">
+    <Position X="7" Y="1" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAA=</HashCode>
+      <FileName>Models\NotificationType.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Notifications.DAL.Models.NotificationTypeSubscription">
+    <Position X="6.75" Y="3" Width="2.5" />
+    <TypeIdentifier>
+      <HashCode>gIAIAgABEIAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAA=</HashCode>
+      <FileName>Models\NotificationTypeSubscription.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Subscription" />
+      <Property Name="NotificationTypes" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="Notifications.DAL.Models.Subscription">
+    <Position X="7" Y="6" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAEAAAAAAAAAQAAAAAEAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Models\Subscription.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Notifications.DAL.Models.SubscriptionEvent">
+    <Position X="1.5" Y="6" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAABAAAgEIAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Models\SubscriptionEvent.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Subscription" />
+      <Property Name="Event" />
+    </ShowAsAssociation>
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>
