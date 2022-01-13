@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Notifications.DAL.Configurations;
 
 namespace Notifications.DAL.Models
 {
@@ -14,7 +15,9 @@ namespace Notifications.DAL.Models
         {
             base.OnModelCreating(modelbuilder);
 
-            // TODO: Check deletebehavior
+            // modelbuilder.ApplyConfiguration(new RoleConfiguration());
+
+            // TODO: Check DeleteBehavior
             modelbuilder.Entity<SubscriptionEvent>(entity =>
             {
                 entity.HasKey(x => x.SubscriptionEventId);
@@ -72,7 +75,6 @@ namespace Notifications.DAL.Models
             });
         }
 
-        public DbSet<ApplicationUser> Users { get; set; }
         public DbSet<NotificationType> NotificationTypes { get; set; }
         public DbSet<NotificationTypeSubscription> NotificationTypeSubscription
         { get; set; }

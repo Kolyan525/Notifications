@@ -21,32 +21,69 @@ namespace Notifications.DAL.DbInitializer
             // Make sure the database is created
             //context.Database.EnsureCreated();
 
-            context.Database.EnsureDeleted();
+            // context.Database.EnsureDeleted();
             context.Database.EnsureCreated();
-            context.Database.Migrate();
+            // context.Database.Migrate();
 
             // TODO: Edit checks
-            if (context.Events.Any() && context.Categories.Any())
+            if (context.Events.Any() && context.Categories.Any() && context.Roles.Any())
             {
                 logger.LogInformation("The database was already seeded");
                 return;
             }
+             
+            logger.LogInformation("Starting to seed database.");
 
-            logger.LogInformation("Starting to seed the database.");
+            var events = new List<Event>()
+            {
+                new Event
+                {
+                    //EventId = 1,
+                    Title = "Online Learning in NaU\"OA\" Starts",
+                    Description = "Dear students! for the next three weeks we need all together (students and teachers) to unite so as not to lose precious time of the second semester. Therefore an online learning will be established.",
+                    ShortDesc = "Very short description for online learning",
+                    EventLink = "https://docs.google.com/document/d/1X7SwM3uUyATgTzd6XIfqop1moM26FsjXfiMxfZqQCZA/edit",
+                    StartAt = DateTime.Today,
+                },
+                new Event
+                {
+                    //EventId = 2,
+                    Title = "International rating",
+                    Description = "Congratulations, My name is Natalia, I deal with international rankings and NaU\"OA\" membership in them. This year, U - Multirank is conducting a survey amongstudents majoring in Computer Science. Please contribute to the high place of Na\"OA\" in this ranking by filling out a small survey. I quote the letter below",
+                    ShortDesc = "Very short description for international rating",
+                    EventLink = "https://che-survey.de/uc/umr2022/ ",
+                    StartAt = new DateTime(2021, 12, 20, 11, 24, 00),
+                    
+                }
+            };
+
 
             var categories = new List<Category>()
             {
                 new Category()
                 {
-                    //CategoryId = 1,
+                    CategoryId = 1,
                     CategoryName = "Universal"
                 },
                 new Category()
                 {
-                    //CategoryId = 2,
+                    CategoryId = 2,
                     CategoryName = "Quarantine",
                 }
             };
+
+
+            string[] roles = new string[] { "Admin", "Manager" };
+
+            foreach (string role in roles)
+            {
+                var roleStore = new RoleStore<IdentityRole>(context);
+
+                if (!context.Roles.Any(r => r.Name == role))
+                {
+                    roleStore.CreateAsync(new IdentityRole(role));
+                }
+            }
 
             //var eventCategories = new List<EventCategory>()
             //{
@@ -70,30 +107,7 @@ namespace Notifications.DAL.DbInitializer
             //    },
             //};
 
-            var events = new List<Event>()
-            {
-                new Event
-                {
-                    //EventId = 1,
-                    Title = "Online Learning in NaU\"OA\" Starts",
-                    Description = "Dear students! for the next three weeks we need all together (students and teachers) to unite so as not to lose precious time of the second semester. Therefore, an online learning will be established.",
-                    ShortDesc = "Very short description for online learning",
-                    EventLink = "https://docs.google.com/document/d/1X7SwM3uUyATgTzd6XIfqop1moM26FsjXfiMxfZqQCZA/edit",
-                    StartAt = DateTime.Today,
-                },
-                new Event
-                {
-                    //EventId = 2,
-                    Title = "International rating",
-                    Description = "Congratulations, My name is Natalia, I deal with international rankings and NaU\"OA\" membership in them. This year, U - Multirank is conducting a survey among students majoring in Computer Science. Please contribute to the high place of Na\"OA\" in this ranking by filling out a small survey. I quote the letter below",
-                    ShortDesc = "Very short description for international rating",
-                    EventLink = "https://che-survey.de/uc/umr2022/ ",
-                    StartAt = new DateTime(2021, 12, 20, 11, 24, 00),
-                }
-            };
-
-
-
+            
             var subscriptions = new List<Subscription>()
             {
                 new Subscription
@@ -189,47 +203,47 @@ namespace Notifications.DAL.DbInitializer
             //    }
             //}
 
-            string[] roles = new string[] { "Administrator", "Editor" };
+            //string[] roles = new string[] { "Administrator", "Editor" };
 
-            foreach (string role in roles)
-            {
-                var roleStore = new RoleStore<IdentityRole>(context);
+            //foreach (string role in roles)
+            //{
+            //    var roleStore = new RoleStore<IdentityRole>(context);
 
-                if (!context.Roles.Any(r => r.Name == role))
-                {
-                    roleStore.CreateAsync(new IdentityRole(role));
-                }
-            }
+            //    if (!context.Roles.Any(r => r.Name == role))
+            //    {
+            //        roleStore.CreateAsync(new IdentityRole(role));
+            //    }
+            //}
 
-            var user = new ApplicationUser
-            {
-                FirstName = "Kolya",
-                LastName = "Kalina",
-                Email = "mykola.kalinichenko@oa.edu.ua",
-                NormalizedEmail = "MYKOLA.KALINICHENKO@OA.EDU.UA",
-                UserName = "Admin",
-                NormalizedUserName = "ADMIN",
-                PhoneNumber = "+380936429895",
-                EmailConfirmed = true,
-                PhoneNumberConfirmed = true,
-                SecurityStamp = Guid.NewGuid().ToString("D")
-            };
+            //var user = new ApplicationUser
+            //{
+            //    FirstName = "Kolya",
+            //    LastName = "Kalina",
+            //    Email = "mykola.kalinichenko@oa.edu.ua",
+            //    NormalizedEmail = "MYKOLA.KALINICHENKO@OA.EDU.UA",
+            //    UserName = "Admin",
+            //    NormalizedUserName = "ADMIN",
+            //    PhoneNumber = "+380936429895",
+            //    EmailConfirmed = true,
+            //    PhoneNumberConfirmed = true,
+            //    SecurityStamp = Guid.NewGuid().ToString("D")
+            //};
 
-            if (!context.Users.Any(u => u.UserName == user.UserName))
-            {
-                var password = new PasswordHasher<ApplicationUser>();
-                var hashed = password.HashPassword(user, "bruh1337");
-                user.PasswordHash = hashed;
+            //if (!context.Users.Any(u => u.UserName == user.UserName))
+            //{
+            //    var password = new PasswordHasher<ApplicationUser>();
+            //    var hashed = password.HashPassword(user, "bruh1337");
+            //    user.PasswordHash = hashed;
 
-                var userStore = new UserStore<ApplicationUser>(context);
-                var result = userStore.CreateAsync(user);
-            }
-
-            context.Categories.AddRange(categories);
+            //    var userStore = new UserStore<ApplicationUser>(context);
+            //    var result = userStore.CreateAsync(user);
+            //}
 
             context.Events.AddRange(events);
 
-            context.Subscriptions.AddRange(subscriptions);
+            context.Categories.AddRange(categories);
+
+            //context.Subscriptions.AddRange(subscriptions);
             
             //context.EventCategories.AddRange(eventCategories);
 
@@ -239,7 +253,7 @@ namespace Notifications.DAL.DbInitializer
 
             //context.SubscriptionEvents.AddRange(subscriptionEvents);
 
-            AssignRoles(services, user.Email, roles);
+            //AssignRoles(services, user.Email, roles);
 
             context.SaveChangesAsync();
 

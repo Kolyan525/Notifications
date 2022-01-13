@@ -15,7 +15,9 @@ namespace Notifications.Api
             var builder = services.AddIdentityCore<ApplicationUser>(q => q.User.RequireUniqueEmail = true);
 
             builder = new IdentityBuilder(builder.UserType, typeof(IdentityRole), services);
-            builder.AddEntityFrameworkStores<NotificationsContext>().AddDefaultTokenProviders();
+            builder
+                .AddEntityFrameworkStores<NotificationsContext>()
+                .AddDefaultTokenProviders();
 
         }
     }
