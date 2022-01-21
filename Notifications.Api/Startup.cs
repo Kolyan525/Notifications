@@ -10,6 +10,7 @@ using Notifications.Api.IRepository;
 using Notifications.Api.Repository;
 using Notifications.DAL.Models;
 using Notifications.DTO.Configurations;
+using System.Linq;
 
 namespace Notifications.Api
 {
@@ -46,6 +47,7 @@ namespace Notifications.Api
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "NotificationsApi", Version = "v1" });
+                c.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
             });
         }
 

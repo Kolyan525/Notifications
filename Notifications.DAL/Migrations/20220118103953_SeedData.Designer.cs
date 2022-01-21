@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Notifications.DAL.Models;
 
@@ -11,9 +12,10 @@ using Notifications.DAL.Models;
 namespace Notifications.DAL.Migrations
 {
     [DbContext(typeof(NotificationsContext))]
-    partial class NotificationsContextModelSnapshot : ModelSnapshot
+    [Migration("20220118103953_SeedData")]
+    partial class SeedData
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -51,15 +53,15 @@ namespace Notifications.DAL.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "3086f867-19cf-4424-9ed0-25466d181001",
-                            ConcurrencyStamp = "3840fc94-6f1f-4bb5-8e84-096cd468d404",
+                            Id = "858a26b6-d542-40af-88ee-606484163a8d",
+                            ConcurrencyStamp = "721c2327-4221-4492-a001-4cfbf23207f3",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         },
                         new
                         {
-                            Id = "d8a2eb8b-73c7-46ac-8e53-4372e308915c",
-                            ConcurrencyStamp = "916e198f-2766-473e-826c-76bccf60183b",
+                            Id = "283af1bc-58b8-41f6-a97a-783edfde9590",
+                            ConcurrencyStamp = "fc945696-4b1b-41e9-bef2-353654511571",
                             Name = "Manager",
                             NormalizedName = "MANAGER"
                         });
@@ -296,26 +298,6 @@ namespace Notifications.DAL.Migrations
                     b.HasKey("EventId");
 
                     b.ToTable("Events");
-
-                    b.HasData(
-                        new
-                        {
-                            EventId = 1L,
-                            Description = "Dear students! for the next three weeks we need all together (students and teachers) to unite so as not to lose precious time of the second semester. Therefore an online learning will be established.",
-                            EventLink = "https://docs.google.com/document/d/1X7SwM3uUyATgTzd6XIfqop1moM26FsjXfiMxfZqQCZA/edit",
-                            ShortDesc = "Very short description for online learning",
-                            StartAt = new DateTime(2022, 1, 20, 0, 0, 0, 0, DateTimeKind.Local),
-                            Title = "Online Learning in NaU\"OA\" Starts"
-                        },
-                        new
-                        {
-                            EventId = 2L,
-                            Description = "Congratulations, My name is Natalia, I deal with international rankings and NaU\"OA\" membership in them. This year, U - Multirank is conducting a survey amongstudents majoring in Computer Science. Please contribute to the high place of Na\"OA\" in this ranking by filling out a small survey. I quote the letter below",
-                            EventLink = "https://che-survey.de/uc/umr2022/ ",
-                            ShortDesc = "Very short description for international rating",
-                            StartAt = new DateTime(2021, 12, 20, 11, 24, 0, 0, DateTimeKind.Unspecified),
-                            Title = "International rating"
-                        });
                 });
 
             modelBuilder.Entity("Notifications.DAL.Models.EventCategory", b =>
@@ -339,26 +321,6 @@ namespace Notifications.DAL.Migrations
                     b.HasIndex("EventId");
 
                     b.ToTable("EventCategories");
-
-                    b.HasData(
-                        new
-                        {
-                            EventCategoryId = 1L,
-                            CategoryId = 1L,
-                            EventId = 1L
-                        },
-                        new
-                        {
-                            EventCategoryId = 2L,
-                            CategoryId = 2L,
-                            EventId = 1L
-                        },
-                        new
-                        {
-                            EventCategoryId = 3L,
-                            CategoryId = 1L,
-                            EventId = 2L
-                        });
                 });
 
             modelBuilder.Entity("Notifications.DAL.Models.NotificationType", b =>
@@ -375,28 +337,6 @@ namespace Notifications.DAL.Migrations
                     b.HasKey("NotificationTypeId");
 
                     b.ToTable("NotificationTypes");
-
-                    b.HasData(
-                        new
-                        {
-                            NotificationTypeId = 1L,
-                            NotificationName = "Telegram"
-                        },
-                        new
-                        {
-                            NotificationTypeId = 2L,
-                            NotificationName = "Instagram"
-                        },
-                        new
-                        {
-                            NotificationTypeId = 3L,
-                            NotificationName = "Discord"
-                        },
-                        new
-                        {
-                            NotificationTypeId = 4L,
-                            NotificationName = "Viber"
-                        });
                 });
 
             modelBuilder.Entity("Notifications.DAL.Models.NotificationTypeSubscription", b =>
@@ -429,15 +369,6 @@ namespace Notifications.DAL.Migrations
                     b.HasIndex("SubscriptionId");
 
                     b.ToTable("NotificationTypeSubscription");
-
-                    b.HasData(
-                        new
-                        {
-                            NotificaitonTypeSubscriptionId = 1L,
-                            NotificationTypeId = 1L,
-                            SubscriptionId = 1L,
-                            TelegramKey = "@Nicolas_Cage525"
-                        });
                 });
 
             modelBuilder.Entity("Notifications.DAL.Models.Subscription", b =>
@@ -451,12 +382,6 @@ namespace Notifications.DAL.Migrations
                     b.HasKey("SubscriptionId");
 
                     b.ToTable("Subscriptions");
-
-                    b.HasData(
-                        new
-                        {
-                            SubscriptionId = 1L
-                        });
                 });
 
             modelBuilder.Entity("Notifications.DAL.Models.SubscriptionEvent", b =>
@@ -480,14 +405,6 @@ namespace Notifications.DAL.Migrations
                     b.HasIndex("SubscriptionId");
 
                     b.ToTable("SubscriptionEvents");
-
-                    b.HasData(
-                        new
-                        {
-                            SubscriptionEventId = 1L,
-                            EventId = 1L,
-                            SubscriptionId = 1L
-                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

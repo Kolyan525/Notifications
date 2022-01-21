@@ -14,6 +14,10 @@ namespace Notifications.DTO.DTOs
         [StringLength(maximumLength: 20, ErrorMessage = "Category Name is too long")]
         public string CategoryName { get; set; }
     }
+    public class UpdateCategoryDTO : CreateCategoryDTO
+    { 
+        
+    }
     public class CategoryDTO : CreateCategoryDTO
     {
         public long CategoryId { get; set; }
@@ -21,6 +25,4 @@ namespace Notifications.DTO.DTOs
         // This should refer to DTO
         public ICollection<EventCategory> EventCategories { get; set; }
     }
-
-
 }

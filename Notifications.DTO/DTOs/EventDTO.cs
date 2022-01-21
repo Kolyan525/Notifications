@@ -29,6 +29,12 @@ namespace Notifications.DTO.DTOs
         // Required
         public DateTime StartAt { get; set; }
     }
+    public class UpdateEventDTO : CreateEventDTO
+    {
+        public ICollection<EventCategory> EventCategories { get; set; }
+        public ICollection<SubscriptionEvent> SubscriptionEvents { get; set; }
+    }
+
     public class EventDTO : CreateEventDTO
     {
         public long EventId { get; set; }

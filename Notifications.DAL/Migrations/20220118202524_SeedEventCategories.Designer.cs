@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Notifications.DAL.Models;
 
@@ -11,9 +12,10 @@ using Notifications.DAL.Models;
 namespace Notifications.DAL.Migrations
 {
     [DbContext(typeof(NotificationsContext))]
-    partial class NotificationsContextModelSnapshot : ModelSnapshot
+    [Migration("20220118202524_SeedEventCategories")]
+    partial class SeedEventCategories
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -51,15 +53,15 @@ namespace Notifications.DAL.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "3086f867-19cf-4424-9ed0-25466d181001",
-                            ConcurrencyStamp = "3840fc94-6f1f-4bb5-8e84-096cd468d404",
+                            Id = "b224f9d1-db23-416a-a974-1b78c93c935f",
+                            ConcurrencyStamp = "99d34d1b-aa1a-4883-862e-3eaf0de61888",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         },
                         new
                         {
-                            Id = "d8a2eb8b-73c7-46ac-8e53-4372e308915c",
-                            ConcurrencyStamp = "916e198f-2766-473e-826c-76bccf60183b",
+                            Id = "afede725-f382-4cda-b6c0-76c9d40dda09",
+                            ConcurrencyStamp = "c94bfd31-098c-43d5-bb1e-3d7bc1944882",
                             Name = "Manager",
                             NormalizedName = "MANAGER"
                         });
@@ -304,7 +306,7 @@ namespace Notifications.DAL.Migrations
                             Description = "Dear students! for the next three weeks we need all together (students and teachers) to unite so as not to lose precious time of the second semester. Therefore an online learning will be established.",
                             EventLink = "https://docs.google.com/document/d/1X7SwM3uUyATgTzd6XIfqop1moM26FsjXfiMxfZqQCZA/edit",
                             ShortDesc = "Very short description for online learning",
-                            StartAt = new DateTime(2022, 1, 20, 0, 0, 0, 0, DateTimeKind.Local),
+                            StartAt = new DateTime(2022, 1, 18, 0, 0, 0, 0, DateTimeKind.Local),
                             Title = "Online Learning in NaU\"OA\" Starts"
                         },
                         new
@@ -375,28 +377,6 @@ namespace Notifications.DAL.Migrations
                     b.HasKey("NotificationTypeId");
 
                     b.ToTable("NotificationTypes");
-
-                    b.HasData(
-                        new
-                        {
-                            NotificationTypeId = 1L,
-                            NotificationName = "Telegram"
-                        },
-                        new
-                        {
-                            NotificationTypeId = 2L,
-                            NotificationName = "Instagram"
-                        },
-                        new
-                        {
-                            NotificationTypeId = 3L,
-                            NotificationName = "Discord"
-                        },
-                        new
-                        {
-                            NotificationTypeId = 4L,
-                            NotificationName = "Viber"
-                        });
                 });
 
             modelBuilder.Entity("Notifications.DAL.Models.NotificationTypeSubscription", b =>
@@ -429,15 +409,6 @@ namespace Notifications.DAL.Migrations
                     b.HasIndex("SubscriptionId");
 
                     b.ToTable("NotificationTypeSubscription");
-
-                    b.HasData(
-                        new
-                        {
-                            NotificaitonTypeSubscriptionId = 1L,
-                            NotificationTypeId = 1L,
-                            SubscriptionId = 1L,
-                            TelegramKey = "@Nicolas_Cage525"
-                        });
                 });
 
             modelBuilder.Entity("Notifications.DAL.Models.Subscription", b =>
@@ -451,12 +422,6 @@ namespace Notifications.DAL.Migrations
                     b.HasKey("SubscriptionId");
 
                     b.ToTable("Subscriptions");
-
-                    b.HasData(
-                        new
-                        {
-                            SubscriptionId = 1L
-                        });
                 });
 
             modelBuilder.Entity("Notifications.DAL.Models.SubscriptionEvent", b =>
@@ -480,14 +445,6 @@ namespace Notifications.DAL.Migrations
                     b.HasIndex("SubscriptionId");
 
                     b.ToTable("SubscriptionEvents");
-
-                    b.HasData(
-                        new
-                        {
-                            SubscriptionEventId = 1L,
-                            EventId = 1L,
-                            SubscriptionId = 1L
-                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
