@@ -1,13 +1,10 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Notifications.DAL.Models;
 using Notifications.DTO.DTOs;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace Notifications.Api.Controllers
@@ -32,7 +29,7 @@ namespace Notifications.Api.Controllers
 
         [HttpPost]
         [Route("Register")]
-        public async Task<IActionResult> Register([FromBody] UserDTO userDTO )
+        public async Task<IActionResult> Register([FromBody] UserDTO userDTO)
         {
             logger.LogInformation($"Registration Attempt for {userDTO.Email}");
             if (!ModelState.IsValid)

@@ -1,8 +1,6 @@
 ﻿using Notifications.Api.IRepository;
 using Notifications.DAL.Models;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace Notifications.Api.Repository

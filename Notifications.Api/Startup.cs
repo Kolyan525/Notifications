@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using Notifications.Api.IRepository;
 using Notifications.Api.Repository;
+using Notifications.DAL.DbInitializer;
 using Notifications.DAL.Models;
 using Notifications.DTO.Configurations;
 using System.Linq;
@@ -30,19 +31,20 @@ namespace Notifications.Api
                 .AddNewtonsoftJson(op => op.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
 
             string connection = Configuration.GetConnectionString("DefaultConnection");
-            services.AddDbContext<NotificationsContext>(options => options.UseSqlServer(connection));
+            services.AddDbContext<NotificationsContext>(options =>
+            {
+                options.UseSqlServer(connection);
+            }, ServiceLifetime.Scoped);
+
+            services.AddTransient<DbInitializer>();
 
             services.AddAuthentication();
-            services.ConfigureIdentity();
 
-            //services.AddIdentityCore<ApplicationUser>(options =>
-            //{
-            //    options.SignIn.RequireConfirmedAccount = false;
-            //});
+            services.ConfigureIdentity();
 
             services.AddAutoMapper(typeof(MapperInitializer));
 
-            services.AddTransient<IUnitOfWork, UnitOfWork>();
+            services.AddTransient<IUnitOfWork, UnitOfWork>();   // TODO: question lifetime compared to DbContext
 
             services.AddSwaggerGen(c =>
             {
@@ -62,7 +64,7 @@ namespace Notifications.Api
                 app.UseSwagger();
                 app.UseSwaggerUI(c =>
                 {
-                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Notifications API V1");
                 });
             }
 

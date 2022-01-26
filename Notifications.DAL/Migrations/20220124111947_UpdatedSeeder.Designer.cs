@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Notifications.DAL.Models;
 
@@ -11,9 +12,10 @@ using Notifications.DAL.Models;
 namespace Notifications.DAL.Migrations
 {
     [DbContext(typeof(NotificationsContext))]
-    partial class NotificationsContextModelSnapshot : ModelSnapshot
+    [Migration("20220124111947_UpdatedSeeder")]
+    partial class UpdatedSeeder
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -348,12 +350,6 @@ namespace Notifications.DAL.Migrations
                         .HasColumnType("bigint");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("SubscriptionId"), 1L, 1);
-
-                    b.Property<long>("NotificationTypeSubscriptionId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("SubscriptionEventId")
-                        .HasColumnType("bigint");
 
                     b.HasKey("SubscriptionId");
 

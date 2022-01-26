@@ -8,6 +8,10 @@ using Notifications.DTO.DTOs;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
+using System.Data;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -20,15 +24,18 @@ namespace Notifications.Api.Controllers
         readonly IUnitOfWork unitOfWork;
         readonly ILogger<EventController> logger;
         readonly IMapper mapper;
+        readonly NotificationsContext context;
 
-        public EventController(IUnitOfWork unitOfWork, ILogger<EventController> logger, IMapper mapper)
+        public EventController(IUnitOfWork unitOfWork, ILogger<EventController> logger, IMapper mapper, NotificationsContext context)
         {
             this.unitOfWork = unitOfWork;
             this.logger = logger;
             this.mapper = mapper;
+            this.context = context;
         }
 
         // GET: api/<EventController>
+        [Authorize(Roles = "Manager")]
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -49,6 +56,7 @@ namespace Notifications.Api.Controllers
         }
 
         // GET api/<EventController>/5
+        [Authorize(Roles = "Admin")]
         [HttpGet("{id:long}", Name = "GetEvent")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -67,7 +75,7 @@ namespace Notifications.Api.Controllers
                 return StatusCode(500, "Internal Server Error. Please try again later.");
             }
         }
-        
+
         // POST api/<EventController>
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
@@ -165,21 +173,27 @@ namespace Notifications.Api.Controllers
             }
         }
 
-        [HttpGet("/{id:long}", Name = "GetSpecialEvent")]
+        [HttpGet("/GetSpecialEvent/{id:long}", Name = "GetSpecialEvent")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<Event>> GetSpecialEvent(long id)
         {
             try
             {
-                var vent = await unitOfWork.Events.Get(x => x.EventId == id, new List<string> { "SubscriptionEvents" }); // TODO: fvent
+                var vent = await unitOfWork.Events.GetFirstOrDefault(
+                    x => x.EventId == id, 
+                    include: x => x
+                    .Include(x => x.EventCategories)
+                    .ThenInclude(x => x.Category)
+                );
+
                 var result = mapper.Map<EventDTO>(vent);
-                logger.LogInformation($"Successfully executed {nameof(GetEvent)}");
+                logger.LogInformation($"Successfully executed {nameof(GetSpecialEvent)}");
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, $"Something went wrong in the {nameof(GetEvent)}");
+                logger.LogError(ex, $"Something went wrong in the {nameof(GetSpecialEvent)}");
                 return StatusCode(500, "Internal Server Error. Please try again later.");
             }
         }

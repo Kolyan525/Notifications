@@ -1,10 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Notifications.DAL.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Notifications.Api
 {
@@ -18,7 +14,6 @@ namespace Notifications.Api
             builder
                 .AddEntityFrameworkStores<NotificationsContext>()
                 .AddDefaultTokenProviders();
-
         }
     }
 }

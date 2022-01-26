@@ -1,10 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query;
 using Notifications.Api.IRepository;
 using Notifications.DAL.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Security.Principal;
 using System.Threading.Tasks;
 
 namespace Notifications.Api.Repository
@@ -40,7 +42,32 @@ namespace Notifications.Api.Repository
                 }
             }
 
-            return await query.AsNoTracking().FirstOrDefaultAsync(expression); 
+            return await query.AsNoTracking().FirstOrDefaultAsync(expression);
+        }
+
+        public async Task<T> GetFirstOrDefault(Expression<Func<T, bool>> selector,
+                                          Expression<Func<T, bool>> predicate = null,
+                                          Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null,
+                                          Func<IQueryable<T>, IIncludableQueryable<T, object>> include = null)
+        {
+            IQueryable<T> query = db;
+
+            if (include != null)
+            {
+                query = include(query);
+            }
+
+            if (predicate != null)
+            {
+                query = query.Where(predicate);
+            }
+
+            if (orderBy != null)
+            {
+                query = orderBy(query);
+            }
+
+            return await query.AsNoTracking().FirstOrDefaultAsync(selector);
         }
 
         public async Task<IList<T>> GetAll(Expression<Func<T, bool>> expression = null, Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null, List<string> includes = null)

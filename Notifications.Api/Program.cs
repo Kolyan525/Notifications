@@ -3,7 +3,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Notifications.DAL.DbInitializer;
-using Notifications.DAL.Models;
 using Serilog;
 using Serilog.Events;
 using System;
@@ -85,9 +84,8 @@ namespace Notifications.Api
                 var services = scope.ServiceProvider;
                 try
                 {
-                    var context = services.GetRequiredService<NotificationsContext>();
-
-                    DbInitializer.Initialize(context, services);
+                    var context = scope.ServiceProvider.GetRequiredService<DbInitializer>();
+                    context.Initialize().GetAwaiter().GetResult();
                 }
                 catch (Exception ex)
                 {

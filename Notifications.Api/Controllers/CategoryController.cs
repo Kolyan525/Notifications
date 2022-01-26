@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Notifications.Api.IRepository;
 using Notifications.DAL.Models;
@@ -152,7 +153,7 @@ namespace Notifications.Api.Controllers
                     logger.LogError($"Invalid DELETE attempt in {nameof(DeleteCategory)}");
                     return BadRequest("Submitted data is invalid");
                 }
-                
+
                 await unitOfWork.Categories.Delete(id);
                 await unitOfWork.Save();
 
@@ -162,6 +163,29 @@ namespace Notifications.Api.Controllers
             {
                 logger.LogError(ex, $"Invalid DELETE attempt in {nameof(DeleteCategory)}");
                 return BadRequest("Submitted data is invalid");
+            }
+        }
+
+        [HttpGet("/GetCategoryEvents/{id:long}", Name = "GetCategoryEvents")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<Category>> GetCategoryEvents(long id)
+        {
+            try
+            {
+                var category = await unitOfWork.Categories.GetFirstOrDefault(
+                    x => x.CategoryId == id, 
+                    include: x => x.Include(x => x.EventCategories).ThenInclude(x => x.Event) 
+                );
+
+                var result = mapper.Map<CategoryDTO>(category);
+                logger.LogInformation($"Successfully executed {nameof(GetCategoryEvents)}");
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, $"Something went wrong in the {nameof(GetCategoryEvents)}");
+                return StatusCode(500, "Internal Server Error. Please try again later.");
             }
         }
     }

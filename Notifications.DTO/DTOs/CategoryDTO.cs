@@ -1,10 +1,6 @@
-﻿using System;
+﻿using Notifications.DAL.Models;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Notifications.DAL.Models;
 
 namespace Notifications.DTO.DTOs
 {
@@ -15,8 +11,8 @@ namespace Notifications.DTO.DTOs
         public string CategoryName { get; set; }
     }
     public class UpdateCategoryDTO : CreateCategoryDTO
-    { 
-        
+    {
+
     }
     public class CategoryDTO : CreateCategoryDTO
     {
