@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
-using Notifications.Api.IRepository;
+using Notifications.BL.IRepository;
 using Notifications.DAL.Models;
 using System;
 using System.Collections.Generic;
@@ -9,7 +9,7 @@ using System.Linq.Expressions;
 using System.Security.Principal;
 using System.Threading.Tasks;
 
-namespace Notifications.Api.Repository
+namespace Notifications.BL.Repository
 {
     public class GenericRepository<T> : IGenericRepository<T> where T : class
     {

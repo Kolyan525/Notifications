@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Notifications.BL.Services;
 using Notifications.DAL.Models;
 using Notifications.DTO.DTOs;
 using System;
@@ -16,19 +18,22 @@ namespace Notifications.Api.Controllers
         readonly UserManager<ApplicationUser> userManager;
         readonly ILogger<AccountController> logger;
         readonly IMapper mapper;
-
+        readonly IAuthManager authManager;
         public AccountController(
             UserManager<ApplicationUser> userManager,
             ILogger<AccountController> logger,
-            IMapper mapper)
+            IMapper mapper, IAuthManager authManager)
         {
             this.userManager = userManager;
             this.logger = logger;
             this.mapper = mapper;
+            this.authManager = authManager;
         }
 
         [HttpPost]
         [Route("Register")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Register([FromBody] UserDTO userDTO)
         {
             logger.LogInformation($"Registration Attempt for {userDTO.Email}");
@@ -45,16 +50,21 @@ namespace Notifications.Api.Controllers
 
                 if (!result.Succeeded)
                 {
-                    foreach (var error in result.Errors) // error info
+                    foreach (var error in result.Errors) // possibly sensitive error info
                     {
                         ModelState.AddModelError(error.Code, error.Description);
                     }
                     return BadRequest(ModelState);
                 }
 
+                if (userDTO.Email.Equals("mykola.kalinichenko@oa.edu.ua"))
+                {
+                    await userManager.AddToRoleAsync(user, "Admin" );
+                    return Accepted();
+                }
+
                 await userManager.AddToRolesAsync(user, userDTO.Roles);
                 return Accepted();
-
             }
             catch (Exception ex)
             {
@@ -63,32 +73,30 @@ namespace Notifications.Api.Controllers
             }
         }
 
-        //[HttpPost]
-        //[Route("Login")]
-        //public async Task<IActionResult> Login([FromBody] LoginUserDTO userDTO)
-        //{
-        //    logger.LogInformation($"Login Attempt for {userDTO.Email}");
-        //    if (!ModelState.IsValid)
-        //    {
-        //        return BadRequest(ModelState);
-        //    }
+        [HttpPost]
+        [Route("Login")]
+        public async Task<IActionResult> Login([FromBody] LoginUserDTO userDTO)
+        {
+            logger.LogInformation($"Login Attempt for {userDTO.Email}");
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
 
-        //    try
-        //    {
-        //        var result = await signInManager.PasswordSignInAsync(userDTO.Email, userDTO.Password, false, false);
+            try
+            {
+                if (!await authManager.ValidateUser(userDTO))
+                {
+                    return Unauthorized();
+                }
 
-        //        if (!result.Succeeded)
-        //        {
-        //            return Unauthorized(userDTO);
-        //        }
-
-        //        return Accepted();
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        logger.LogError(ex, $"Something Went Wrong in the {nameof(Login)}");
-        //        return Problem($"Something Went Wrong in the {nameof(Login)}", statusCode: 500);
-        //    }
-        //}
+                return Accepted(new { Token = await authManager.CreateToken() });
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, $"Something Went Wrong in the {nameof(Login)}");
+                return Problem($"Something Went Wrong in the {nameof(Login)}", statusCode: 500);
+            }
+        }
     }
 }

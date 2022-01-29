@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Notifications.Api.IRepository;
+using Notifications.BL.IRepository;
 using Notifications.DAL.Models;
 using Notifications.DTO.DTOs;
 using System;
@@ -12,6 +12,7 @@ using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using System.Data;
+using Notifications.BL.Services;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -24,18 +25,16 @@ namespace Notifications.Api.Controllers
         readonly IUnitOfWork unitOfWork;
         readonly ILogger<EventController> logger;
         readonly IMapper mapper;
-        readonly NotificationsContext context;
-
-        public EventController(IUnitOfWork unitOfWork, ILogger<EventController> logger, IMapper mapper, NotificationsContext context)
+        readonly NotificationsService notificationsService;
+        public EventController(IUnitOfWork unitOfWork, ILogger<EventController> logger, IMapper mapper, NotificationsService notificationsService)
         {
             this.unitOfWork = unitOfWork;
             this.logger = logger;
             this.mapper = mapper;
-            this.context = context;
+            this.notificationsService = notificationsService;
         }
 
         // GET: api/<EventController>
-        [Authorize(Roles = "Manager")]
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -56,7 +55,7 @@ namespace Notifications.Api.Controllers
         }
 
         // GET api/<EventController>/5
-        [Authorize(Roles = "Admin")]
+        [Authorize]
         [HttpGet("{id:long}", Name = "GetEvent")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -176,24 +175,40 @@ namespace Notifications.Api.Controllers
         [HttpGet("/GetSpecialEvent/{id:long}", Name = "GetSpecialEvent")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<Event>> GetSpecialEvent(long id)
+        public async Task<ActionResult<ICollection<string>>> GetSpecialEvent(long id)
         {
             try
             {
-                var vent = await unitOfWork.Events.GetFirstOrDefault(
-                    x => x.EventId == id, 
-                    include: x => x
-                    .Include(x => x.EventCategories)
-                    .ThenInclude(x => x.Category)
-                );
-
-                var result = mapper.Map<EventDTO>(vent);
+                var vent = await notificationsService.GetEventCategories(id);
+                //var result = mapper.Map<EventDTO>(vent);
                 logger.LogInformation($"Successfully executed {nameof(GetSpecialEvent)}");
-                return Ok(result);
+                return Ok(vent);
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, $"Something went wrong in the {nameof(GetSpecialEvent)}");
+                return StatusCode(500, "Internal Server Error. Please try again later.");
+            }
+        }
+        
+        [HttpGet]
+        [Authorize]
+        [Route("GetSubscribedEvents")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<ICollection<Event>>> GetSubscribedEvents(string TelegramKey = "@Nicolas_Cage525", string InstagramKey = "@DenVozniuk007", string DiscordKey = null)
+        {
+            try
+            {
+                var vent = await notificationsService.GetSubscribedEvents(TelegramKey, InstagramKey, DiscordKey);
+                //var result = mapper.Map<EventDTO>(vent);
+                logger.LogInformation($"Successfully executed {nameof(GetSubscribedEvents)}");
+                return Ok(vent);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, $"Something went wrong in the {nameof(GetSubscribedEvents)}");
                 return StatusCode(500, "Internal Server Error. Please try again later.");
             }
         }

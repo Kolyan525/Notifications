@@ -19,4 +19,9 @@
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="6.2.3" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Notifications.DAL\Notifications.DAL.csproj" />
+    <ProjectReference Include="..\Notifications.DTO\Notifications.DTO.csproj" />
+  </ItemGroup>
+
 </Project>

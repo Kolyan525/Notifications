@@ -6,12 +6,15 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
-using Notifications.Api.IRepository;
-using Notifications.Api.Repository;
+using Notifications.BL.IRepository;
+using Notifications.BL.Repository;
+using Notifications.BL.Services;
 using Notifications.DAL.DbInitializer;
 using Notifications.DAL.Models;
 using Notifications.DTO.Configurations;
+using System.Collections.Generic;
 using System.Linq;
+using Swashbuckle.AspNetCore;
 
 namespace Notifications.Api
 {
@@ -36,20 +39,52 @@ namespace Notifications.Api
                 options.UseSqlServer(connection);
             }, ServiceLifetime.Scoped);
 
-            services.AddTransient<DbInitializer>();
 
             services.AddAuthentication();
-
             services.ConfigureIdentity();
+            services.ConfigureJWT(Configuration);
 
             services.AddAutoMapper(typeof(MapperInitializer));
 
             services.AddTransient<IUnitOfWork, UnitOfWork>();   // TODO: question lifetime compared to DbContext
+            services.AddTransient<NotificationsService>();
+            services.AddTransient<DbInitializer>();
+            services.AddScoped<IAuthManager, AuthManager>();
 
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "NotificationsApi", Version = "v1" });
                 c.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
+                c.AddSecurityDefinition("Bearer",
+        new OpenApiSecurityScheme
+                    {
+                        Description =
+                        //"JWT Authorization header using the Bearer scheme. \r\n\r\n Enter 'Bearer' [space] and then your token in the text input below.\r\n\r\nExample: \"Bearer 12345abcdef\"",
+                        "Put **_ONLY_** your JWT Bearer token on textbox below!",
+                        Name = "Authorization",
+                        In = ParameterLocation.Header,
+                        //Type = SecuritySchemeType.ApiKey,
+                        Type = SecuritySchemeType.Http,
+                        Scheme = "Bearer"
+                    });
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement()
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            },
+                            Scheme = "oauth2",
+                            Name = "Bearer",
+                            In = ParameterLocation.Header,
+
+                        },
+                        new List<string>()
+                    }
+                });
             });
         }
 
@@ -72,6 +107,7 @@ namespace Notifications.Api
 
             app.UseRouting();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>

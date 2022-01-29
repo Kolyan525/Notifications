@@ -1,10 +1,11 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Notifications.Api.IRepository;
-using Notifications.DAL.Models;
+using Notifications.BL.IRepository;
+using Notifications.DAL.Models; 
 using Notifications.DTO.DTOs;
 using System;
 using System.Collections.Generic;
@@ -53,6 +54,7 @@ namespace Notifications.Api.Controllers
         [HttpGet("{id:long}", Name = "GetCategory")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [Authorize]
         public async Task<ActionResult<Category>> GetCategory(long id)
         {
             try
