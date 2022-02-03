@@ -13,9 +13,10 @@ namespace Notifications.DAL.DbInitializer
 {
     public class DbInitializer
     {
-        readonly NotificationsContext context;
-        IServiceProvider services;
-        ILogger<DbInitializer> logger;
+        private readonly NotificationsContext context;
+        private readonly IServiceProvider services;
+        private readonly ILogger<DbInitializer> logger;
+
         public DbInitializer(NotificationsContext context, IServiceProvider services, ILogger<DbInitializer> logger)
         {
             this.context = context;
@@ -25,6 +26,7 @@ namespace Notifications.DAL.DbInitializer
         public async Task Initialize()
         {
             // TODO: update logs info placements
+            await SeedCategories();
             await SeedEvents();
             //await SeedCategories();
             //await SeedEventCategories();
@@ -37,55 +39,66 @@ namespace Notifications.DAL.DbInitializer
             logger.LogInformation("Finished seeding the database.");
             await context.SaveChangesAsync();
         }
-        // TODO: redo seeder logic on related entitites
+        // TODO: redo seeder logic on related entities
+
+        public async Task SeedCategories()
+        {
+            await CreateCategoryIfNotExists(new Category
+            {
+                CategoryName = "Universal"
+            });
+            await CreateCategoryIfNotExists(new Category
+            {
+                CategoryName = "Quarantine"
+            });
+
+            await context.SaveChangesAsync();
+        }
 
         public async Task SeedEvents()
         {
-            var cat1 = await CreateCategoryIfNotExists(new Category()
-            {
-                //CategoryId = 43,
-                CategoryName = "Universal",
-            });
-            var cat2 = await CreateCategoryIfNotExists(new Category()
-            {
-                //CategoryId = 44,
-                CategoryName = "Quarantine",
-            });
+            var categoryUniversal = context.Categories.First(x => x.CategoryName == "Universal");
+            var categoryQuarantine = context.Categories.First(x => x.CategoryName == "Quarantine");
 
-            var evnt1 = await CreateEventIfNotExists(new Event
+            await CreateEventIfNotExists(new Event
             {
-                //EventId = 1,
                 Title = "Online Learning in NaU\"OA\" Starts",
                 Description = "Dear students! for the next three weeks we need all together (students and teachers) to unite so as not to lose precious time of the second semester. Therefore an online learning will be established.",
                 ShortDesc = "Very short description for online learning",
                 EventLink = "https://docs.google.com/document/d/1X7SwM3uUyATgTzd6XIfqop1moM26FsjXfiMxfZqQCZA/edit",
                 StartAt = DateTime.Today,
+                EventCategories = new List<EventCategory>
+                {
+                    new EventCategory
+                    {
+                        Category = categoryUniversal
+                    },
+                    new EventCategory
+                    {
+                        Category = categoryQuarantine
+                    }
+                }
             });
 
-            var evnt2 = await CreateEventIfNotExists(new Event
+            await CreateEventIfNotExists(new Event
             {
-                //EventId = 2,
                 Title = "International rating",
                 Description = "Congratulations, My name is Natalia, I deal with international rankings and NaU\"OA\" membership in them. This year, U - Multirank is conducting a survey among students majoring in Computer Science. Please contribute to the high place of NaU\"OA\" in this ranking by filling out a small survey. I pinned the letter below",
                 ShortDesc = "Very short description for international rating",
                 EventLink = "https://che-survey.de/uc/umr2022/ ",
                 StartAt = new DateTime(2021, 12, 20, 11, 24, 00),
+                EventCategories = new List<EventCategory>
+                {
+                    new EventCategory
+                    {
+                        Category = categoryUniversal
+                    }
+                }
             });
 
+            await context.SaveChangesAsync();
+
             // Object reference not set to an instance of an object, EventCategories 
-            evnt1.EventCategories.Add(new EventCategory
-            {
-                Category = cat1,
-            });
-            evnt1.EventCategories.Add(new EventCategory
-            {
-                Category = cat2
-            });
-            evnt2.EventCategories.Add(new EventCategory
-            {
-                Category = cat1
-            });
-            
 
             //var ec = await CreateEventCategoryIfNotExists(new EventCategory
             //{
@@ -109,7 +122,7 @@ namespace Notifications.DAL.DbInitializer
             //var nt1 = await CreateNotificationTypeIfNotExists("Viber");
             //var nt2 = await CreateNotificationTypeIfNotExists("Discord");
 
-            
+
             //var nts = await CreateNotificationTypeSubscriptionIfNotExists(new NotificationTypeSubscription
             //{
             //    NotificationType = nt,
@@ -146,7 +159,7 @@ namespace Notifications.DAL.DbInitializer
             //});
         }
 
-        public async Task<Event> CreateEventIfNotExists(Event vent)
+        public async Task CreateEventIfNotExists(Event vent)
         {
             var @event = await context.Events.FirstOrDefaultAsync(
                 e => e.Title == vent.Title &&
@@ -154,26 +167,15 @@ namespace Notifications.DAL.DbInitializer
                 e.StartAt == vent.StartAt);
             if (@event == null)
             {
-                var newEvent = new Event
-                {
-                    Title = vent.Title,
-                    Description = vent.Description,
-                    ShortDesc = vent.ShortDesc,
-                    EventLink = vent.EventLink,
-                    StartAt = vent.StartAt
-                };
-
-                await context.Events.AddAsync(newEvent);
-
-                return newEvent;
+                await context.Events.AddAsync(vent);
             }
-            return @event;
+
+            // possible, we need to have a logic of how to update an existing event
         }
 
-        public async Task<Category> CreateCategoryIfNotExists(Category category)
+        public async Task CreateCategoryIfNotExists(Category category)
         {
-            var cat = await context.Categories.FirstOrDefaultAsync(
-                e => e.CategoryName == category.CategoryName);
+            var cat = await context.Categories.FirstOrDefaultAsync(e => e.CategoryName == category.CategoryName);
             if (cat == null)
             {
                 var newCategory = new Category
@@ -182,9 +184,7 @@ namespace Notifications.DAL.DbInitializer
                 };
 
                 await context.Categories.AddAsync(newCategory);
-                return newCategory;
             }
-            return cat;
         }
 
         public async Task<EventCategory> CreateEventCategoryIfNotExists(EventCategory eventCategory)
