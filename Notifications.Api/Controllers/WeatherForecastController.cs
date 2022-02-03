@@ -3,9 +3,11 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 
 namespace Notifications.Api.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("[controller]")]
     public class WeatherForecastController : ControllerBase
@@ -21,6 +23,7 @@ namespace Notifications.Api.Controllers
         //}
 
         [HttpGet]
+        [AllowAnonymous]
         public IEnumerable<WeatherForecast> Get()
         {
             var rng = new Random();
@@ -34,9 +37,10 @@ namespace Notifications.Api.Controllers
         }
 
         [HttpGet("{id}")]
-        public ActionResult<string> Get(int id)
+        [Authorize]
+        public ActionResult<List<Claim>> Get(int id)
         {
-            return "value";
+            return this.User.Claims.ToList();
         }
     }
 }

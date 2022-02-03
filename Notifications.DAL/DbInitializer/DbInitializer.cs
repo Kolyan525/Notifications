@@ -26,254 +26,255 @@ namespace Notifications.DAL.DbInitializer
         {
             // TODO: update logs info placements
             await SeedEvents();
-            await SeedCategories();
-            await SeedSubscriptions();
-            await SeedEventCategories();
-            await SeedNotificationTypes();
-            await SeedNotificationTypeSubscriptions();
-            await SeedSubscriptionEvents();
+            //await SeedCategories();
+            //await SeedEventCategories();
+            //await SeedSubscriptions();
+            //await SeedNotificationTypes();
+            //await SeedNotificationTypeSubscriptions();
+            //await SeedSubscriptionEvents();
             await SeedUsersAndRoles();
 
             logger.LogInformation("Finished seeding the database.");
             await context.SaveChangesAsync();
         }
+        // TODO: redo seeder logic on related entitites
 
         public async Task SeedEvents()
         {
-            var events = new List<Event>()
+            var cat1 = await CreateCategoryIfNotExists(new Category()
             {
-                new Event
-                {
-                    //EventId = 1,
-                    Title = "Online Learning in NaU\"OA\" Starts",
-                    Description = "Dear students! for the next three weeks we need all together (students and teachers) to unite so as not to lose precious time of the second semester. Therefore an online learning will be established.",
-                    ShortDesc = "Very short description for online learning",
-                    EventLink = "https://docs.google.com/document/d/1X7SwM3uUyATgTzd6XIfqop1moM26FsjXfiMxfZqQCZA/edit",
-                    StartAt = DateTime.Today,
-                },
-                new Event
-                {
-                    //EventId = 2,
-                    Title = "International rating",
-                    Description = "Congratulations, My name is Natalia, I deal with international rankings and NaU\"OA\" membership in them. This year, U - Multirank is conducting a survey amongstudents majoring in Computer Science. Please contribute to the high place of Na\"OA\" in this ranking by filling out a small survey. I quote the letter below",
-                    ShortDesc = "Very short description for international rating",
-                    EventLink = "https://che-survey.de/uc/umr2022/ ",
-                    StartAt = new DateTime(2021, 12, 20, 11, 24, 00),
-                }
-            };
-
-            logger.LogInformation("Starting to seed Events");
-            foreach (var evnt in events)
+                //CategoryId = 43,
+                CategoryName = "Universal",
+            });
+            var cat2 = await CreateCategoryIfNotExists(new Category()
             {
-                var ch = await context.Events.FirstOrDefaultAsync(e => e.Title == evnt.Title);
-                if (ch == null)
-                {
-                    context.Events.Add(evnt);
-                }
-            }
+                //CategoryId = 44,
+                CategoryName = "Quarantine",
+            });
 
-            await context.SaveChangesAsync();
+            var evnt1 = await CreateEventIfNotExists(new Event
+            {
+                //EventId = 1,
+                Title = "Online Learning in NaU\"OA\" Starts",
+                Description = "Dear students! for the next three weeks we need all together (students and teachers) to unite so as not to lose precious time of the second semester. Therefore an online learning will be established.",
+                ShortDesc = "Very short description for online learning",
+                EventLink = "https://docs.google.com/document/d/1X7SwM3uUyATgTzd6XIfqop1moM26FsjXfiMxfZqQCZA/edit",
+                StartAt = DateTime.Today,
+            });
+
+            var evnt2 = await CreateEventIfNotExists(new Event
+            {
+                //EventId = 2,
+                Title = "International rating",
+                Description = "Congratulations, My name is Natalia, I deal with international rankings and NaU\"OA\" membership in them. This year, U - Multirank is conducting a survey among students majoring in Computer Science. Please contribute to the high place of NaU\"OA\" in this ranking by filling out a small survey. I pinned the letter below",
+                ShortDesc = "Very short description for international rating",
+                EventLink = "https://che-survey.de/uc/umr2022/ ",
+                StartAt = new DateTime(2021, 12, 20, 11, 24, 00),
+            });
+
+            // Object reference not set to an instance of an object, EventCategories 
+            evnt1.EventCategories.Add(new EventCategory
+            {
+                Category = cat1,
+            });
+            evnt1.EventCategories.Add(new EventCategory
+            {
+                Category = cat2
+            });
+            evnt2.EventCategories.Add(new EventCategory
+            {
+                Category = cat1
+            });
+            
+
+            //var ec = await CreateEventCategoryIfNotExists(new EventCategory
+            //{
+            //    Event = evnt1,
+            //    Category = cat1
+            //});
+            //var ec1 = await CreateEventCategoryIfNotExists(new EventCategory
+            //{
+            //    Event = evnt1,
+            //    Category = cat2
+            //});
+            //var ec2 = await CreateEventCategoryIfNotExists(new EventCategory
+            //{
+            //    Event = evnt2,
+            //    Category = cat1
+            //});
+
+            ////SubEvents, notif types, nts, subs
+
+            //var nt = await CreateNotificationTypeIfNotExists("Telegram");
+            //var nt1 = await CreateNotificationTypeIfNotExists("Viber");
+            //var nt2 = await CreateNotificationTypeIfNotExists("Discord");
+
+            
+            //var nts = await CreateNotificationTypeSubscriptionIfNotExists(new NotificationTypeSubscription
+            //{
+            //    NotificationType = nt,
+            //    TelegramKey = "@Nicolas_Cage525",
+            //});
+            //var nts1 = await CreateNotificationTypeSubscriptionIfNotExists(new NotificationTypeSubscription
+            //{
+            //    NotificationType = nt2,
+            //    TelegramKey = "Den1337",
+            //});
+
+            //var subevnt = await CreateSubscriptionEventIfNotExists(new SubscriptionEvent
+            //{
+            //    Event = evnt1,
+            //});
+            //var subevnt1 = await CreateSubscriptionEventIfNotExists(new SubscriptionEvent
+            //{
+            //    Event = evnt2,
+            //});
+            //var subevnt2 = await CreateSubscriptionEventIfNotExists(new SubscriptionEvent
+            //{
+            //    Event = evnt2,
+            //});
+
+            //var sub1 = await CreateSubscriptionIfNotExists(new Subscription
+            //{
+            //    NotificationTypeSubscriptions = new List<NotificationTypeSubscription>() { nts, nts1 },
+            //    SubscriptionEvents = new List<SubscriptionEvent>() { subevnt, subevnt1 }
+            //});
+            //var sub2 = await CreateSubscriptionIfNotExists(new Subscription
+            //{
+            //    NotificationTypeSubscriptions = new List<NotificationTypeSubscription>() { nts },
+            //    SubscriptionEvents = new List<SubscriptionEvent>() { subevnt1, subevnt2 }
+            //});
         }
 
-        public async Task SeedCategories()
+        public async Task<Event> CreateEventIfNotExists(Event vent)
         {
-            var categories = new List<Category>()
+            var @event = await context.Events.FirstOrDefaultAsync(
+                e => e.Title == vent.Title &&
+                e.Description == vent.Description &&
+                e.StartAt == vent.StartAt);
+            if (@event == null)
             {
-                new Category()
+                var newEvent = new Event
                 {
-                    CategoryId = 43,
-                    CategoryName = "Universal"
-                },
-                new Category()
-                {
-                    CategoryId = 44,
-                    CategoryName = "Quarantine",
-                }
-            };
+                    Title = vent.Title,
+                    Description = vent.Description,
+                    ShortDesc = vent.ShortDesc,
+                    EventLink = vent.EventLink,
+                    StartAt = vent.StartAt
+                };
 
-            logger.LogInformation("Starting to seed Categories");
-            foreach (var category in categories)
-            {
-                var ch = await context.Categories.FirstOrDefaultAsync(c => c.CategoryName == category.CategoryName);
-                if (ch == null)
-                {
-                    context.Categories.Add(category);
-                }
+                await context.Events.AddAsync(newEvent);
+
+                return newEvent;
             }
-
-            await context.SaveChangesAsync();
+            return @event;
         }
 
-        public async Task SeedSubscriptions()
+        public async Task<Category> CreateCategoryIfNotExists(Category category)
         {
-            var subscriptions = new List<Subscription>()
+            var cat = await context.Categories.FirstOrDefaultAsync(
+                e => e.CategoryName == category.CategoryName);
+            if (cat == null)
             {
-                new Subscription
+                var newCategory = new Category
                 {
-                    SubscriptionId = 24,
-                    NotificationTypeSubscriptionId = 10,
-                    SubscriptionEventId = 10,
-                },
-                new Subscription
-                {
-                    SubscriptionId = 25,
-                    NotificationTypeSubscriptionId = 11,
-                    SubscriptionEventId= 11,
-                }
-            };
+                    CategoryName = category.CategoryName
+                };
 
-            logger.LogInformation("Starting to seed Subscriptions");
-            foreach (var sub in subscriptions)
-            {
-                var ch = await context.Subscriptions.FirstOrDefaultAsync(s => s.SubscriptionId == sub.SubscriptionId);
-                if (ch == null)
-                {
-                    context.Subscriptions.Add(sub);
-                }
+                await context.Categories.AddAsync(newCategory);
+                return newCategory;
             }
-
-            await context.SaveChangesAsync();
+            return cat;
         }
 
-        public async Task SeedEventCategories()
+        public async Task<EventCategory> CreateEventCategoryIfNotExists(EventCategory eventCategory)
         {
-            var eventCategories = new List<EventCategory>()
+            var ec = await context.EventCategories.FirstOrDefaultAsync(e => e.Category == eventCategory.Category && e.Event == eventCategory.Event);
+            if (ec == null)
             {
-                new EventCategory
+                var newEventCategory = new EventCategory
                 {
-                    //EventCategoryId = 1,
-                    CategoryId = 43,
-                    EventId = 53
-                },
-                new EventCategory
-                {
-                    //EventCategoryId = 2,
-                    CategoryId = 44,
-                    EventId = 53
-                },
-                new EventCategory
-                {
-                    //EventCategoryId = 3,
-                    CategoryId = 43,
-                    EventId = 54
-                },
-            };
+                    Event = eventCategory.Event,
+                    Category = eventCategory.Category,
+                };
 
-            logger.LogInformation("Starting to seed EventCategories");
-            foreach (var eventCategory in eventCategories)
-            {
-                var ch = await context.EventCategories.FirstOrDefaultAsync(ec => ec.CategoryId == eventCategory.CategoryId);
-                if (ch == null)
-                {
-                    context.EventCategories.Add(eventCategory);
-                }
+                await context.EventCategories.AddAsync(newEventCategory);
+                return newEventCategory;
             }
-
-            await context.SaveChangesAsync();
+            return ec;
         }
 
-        public async Task SeedNotificationTypes()
+        public async Task<SubscriptionEvent> CreateSubscriptionEventIfNotExists(SubscriptionEvent subscriptionEvent)
         {
-            var notificationTypes = new List<NotificationType>()
+            var se = await context.SubscriptionEvents.FirstOrDefaultAsync(e => e.Event == subscriptionEvent.Event && e.Subscription == subscriptionEvent.Subscription);
+            if (se == null)
             {
-                new NotificationType
+                var newSubscriptionEvent = new SubscriptionEvent
                 {
-                    //NotificationTypeId = 1,
-                    NotificationName = "Telegram"
-                },
-                new NotificationType
-                {
-                    //NotificationTypeId = 2,
-                    NotificationName = "Instagram"
-                },
-                new NotificationType
-                {
-                    //NotificationTypeId = 3,
-                    NotificationName = "Discord",
-                }
-            };
+                    Event = subscriptionEvent.Event,
+                    Subscription = subscriptionEvent.Subscription
+                };
 
-            logger.LogInformation("Starting to seed NotificationTypes");
-            foreach (var notificationType in notificationTypes)
-            {
-                var ch = await context.NotificationTypes.FirstOrDefaultAsync(nt => nt.NotificationName == notificationType.NotificationName);
-                if (ch == null)
-                {
-                    context.NotificationTypes.Add(notificationType);
-                }
+                await context.SubscriptionEvents.AddAsync(newSubscriptionEvent);
+                return newSubscriptionEvent;
             }
-
-            await context.SaveChangesAsync();
+            return se;
         }
 
-        public async Task SeedNotificationTypeSubscriptions()
+        public async Task<NotificationType> CreateNotificationTypeIfNotExists(string notificationTypeName)
         {
-            var notificationTypeSubscriptions = new List<NotificationTypeSubscription>()
+            var nt = await context.NotificationTypes.FirstOrDefaultAsync(n => n.NotificationName == notificationTypeName);
+            if (nt == null)
             {
-                new NotificationTypeSubscription
+                var newNotificationType = new NotificationType
                 {
-                    //NotificaitonTypeSubscriptionId = 1,
-                    NotificationTypeId = 67,
-                    TelegramKey = "@Nicolas_Cage525",
-                    SubscriptionId = 24,
-                },
-                new NotificationTypeSubscription
-                {
-                    //NotificaitonTypeSubscriptionId = 2,
-                    NotificationTypeId = 68,
-                    InstagramKey = "@DenVozniuk007",
-                    SubscriptionId = 25,
-                }
-            };
+                    NotificationName = notificationTypeName
+                };
 
-            logger.LogInformation("Starting to seed NotificationTypeSubscriptions");
-            foreach (var notificationTypeSubscription in notificationTypeSubscriptions)
-            {
-                var ch = await context.NotificationTypeSubscription.FirstOrDefaultAsync(nts => nts.NotificaitonTypeSubscriptionId == notificationTypeSubscription.NotificaitonTypeSubscriptionId);
-                if (ch == null)
-                {
-                    context.NotificationTypeSubscription.Add(notificationTypeSubscription);
-                }
+                await context.NotificationTypes.AddAsync(newNotificationType);
+                return newNotificationType;
             }
-
-            await context.SaveChangesAsync();
+            return nt;
         }
 
-        public async Task SeedSubscriptionEvents()
+        public async Task<NotificationTypeSubscription> CreateNotificationTypeSubscriptionIfNotExists(NotificationTypeSubscription notification)
         {
-            var subscriptionEvents = new List<SubscriptionEvent>()
-            {
-                new SubscriptionEvent
-                {
-                    //SubscriptionEventId = 6,
-                    EventId = 53,
-                    SubscriptionId = 24
-                },
-                new SubscriptionEvent
-                {
-                    //SubscriptionEventId = 7,
-                    EventId = 54,
-                    SubscriptionId = 24
-                },
-                new SubscriptionEvent
-                {
-                    //SubscriptionEventId = 8,
-                    EventId = 54,
-                    SubscriptionId = 25
-                },
-            };
+            var nts = await context.NotificationTypeSubscription.FirstOrDefaultAsync(n => n.NotificationType == notification.NotificationType
+                            && n.TelegramKey == notification.TelegramKey && n.InstagramKey == notification.InstagramKey && n.DiscordKey == notification.DiscordKey && n.Subscription == notification.Subscription);
 
-            logger.LogInformation("Starting to seed SubscriptionEvents");
-            foreach (var subscriptionEvent in subscriptionEvents)
+            if (nts == null)
             {
-                var ch = await context.SubscriptionEvents.FirstOrDefaultAsync(se => se.EventId == subscriptionEvent.EventId);
-                if (ch == null)
+                var newNotificationTypeSubscription = new NotificationTypeSubscription
                 {
-                    context.SubscriptionEvents.Add(subscriptionEvent);
-                }
+                    NotificationType = notification.NotificationType,
+                    TelegramKey = notification.TelegramKey,
+                    InstagramKey = notification.InstagramKey,
+                    DiscordKey = notification.DiscordKey,
+                    Subscription = notification.Subscription
+                };
+
+                await context.NotificationTypeSubscription.AddAsync(newNotificationTypeSubscription);
+                return newNotificationTypeSubscription;
             }
+            return nts;
+        }
 
-            await context.SaveChangesAsync();
+        public async Task<Subscription> CreateSubscriptionIfNotExists(Subscription subscription)
+        {
+            var sub = await context.Subscriptions.FirstOrDefaultAsync(s => s.NotificationTypeSubscriptions == subscription.NotificationTypeSubscriptions 
+                && s.SubscriptionEvents == subscription.SubscriptionEvents);
+            if (sub == null)
+            {
+                var newSubscription = new Subscription
+                {
+                    NotificationTypeSubscriptions = subscription.NotificationTypeSubscriptions,
+                    SubscriptionEvents = subscription.SubscriptionEvents
+                };
+
+                await context.Subscriptions.AddAsync(newSubscription);
+                return newSubscription;
+            }
+            return sub;
         }
 
         public async Task SeedUsersAndRoles()
@@ -306,7 +307,7 @@ namespace Notifications.DAL.DbInitializer
                     Email = "mykola.kalinichenko@oa.edu.ua",
                     EmailConfirmed = true
                 };
-                
+
                 ApplicationUser manager = new ApplicationUser
                 {
                     UserName = "Denys",

@@ -84,8 +84,8 @@ namespace Notifications.Api
                 var services = scope.ServiceProvider;
                 try
                 {
-                    var context = scope.ServiceProvider.GetRequiredService<DbInitializer>();
-                    context.Initialize().GetAwaiter().GetResult();
+                    var initializer = scope.ServiceProvider.GetRequiredService<DbInitializer>();
+                    initializer.Initialize().GetAwaiter().GetResult();
                 }
                 catch (Exception ex)
                 {

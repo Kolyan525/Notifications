@@ -10,7 +10,7 @@ namespace Notifications.DAL.Models
 
         // FK for NotificationType
         public long NotificationTypeId { get; set; }
-        public NotificationType NotificationTypes { get; set; }
+        public NotificationType NotificationType { get; set; }
 
         // FK for Subscription
         public long SubscriptionId { get; set; }

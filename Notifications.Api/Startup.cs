@@ -15,6 +15,7 @@ using Notifications.DTO.Configurations;
 using System.Collections.Generic;
 using System.Linq;
 using Swashbuckle.AspNetCore;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace Notifications.Api
 {
@@ -40,9 +41,31 @@ namespace Notifications.Api
             }, ServiceLifetime.Scoped);
 
 
-            services.AddAuthentication();
+            services.AddAuthentication(options =>
+            {
+                options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+
+            })
+                .AddCookie(options =>
+                {
+                    options.LoginPath = "/api/account/google-login";
+                })
+                .AddGoogle(options =>
+                {
+                    options.ClientId = "629075882388-da8gmv28t2tfe4pegh4mt47lpt0r91md.apps.googleusercontent.com";
+                    options.ClientSecret = "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";
+                });
+
             services.ConfigureIdentity();
-            services.ConfigureJWT(Configuration);
+            //services.ConfigureJWT(Configuration);
+
+            services.AddCors(o =>
+            {
+                o.AddPolicy("AllowAll", builder =>
+                    builder.AllowAnyOrigin()
+                    .AllowAnyMethod()
+                    .AllowAnyHeader());
+            });
 
             services.AddAutoMapper(typeof(MapperInitializer));
 
@@ -55,36 +78,36 @@ namespace Notifications.Api
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "NotificationsApi", Version = "v1" });
                 c.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
-                c.AddSecurityDefinition("Bearer",
-        new OpenApiSecurityScheme
-                    {
-                        Description =
-                        //"JWT Authorization header using the Bearer scheme. \r\n\r\n Enter 'Bearer' [space] and then your token in the text input below.\r\n\r\nExample: \"Bearer 12345abcdef\"",
-                        "Put **_ONLY_** your JWT Bearer token on textbox below!",
-                        Name = "Authorization",
-                        In = ParameterLocation.Header,
-                        //Type = SecuritySchemeType.ApiKey,
-                        Type = SecuritySchemeType.Http,
-                        Scheme = "Bearer"
-                    });
-                c.AddSecurityRequirement(new OpenApiSecurityRequirement()
-                {
-                    {
-                        new OpenApiSecurityScheme
-                        {
-                            Reference = new OpenApiReference
-                            {
-                                Type = ReferenceType.SecurityScheme,
-                                Id = "Bearer"
-                            },
-                            Scheme = "oauth2",
-                            Name = "Bearer",
-                            In = ParameterLocation.Header,
+        //        c.AddSecurityDefinition("Bearer",
+        //new OpenApiSecurityScheme
+        //            {
+        //                Description =
+        //                //"JWT Authorization header using the Bearer scheme. \r\n\r\n Enter 'Bearer' [space] and then your token in the text input below.\r\n\r\nExample: \"Bearer 12345abcdef\"",
+        //                "Put **_ONLY_** your JWT Bearer token on textbox below!",
+        //                Name = "Authorization",
+        //                In = ParameterLocation.Header,
+        //                //Type = SecuritySchemeType.ApiKey,
+        //                Type = SecuritySchemeType.Http,
+        //                Scheme = "Bearer"
+        //            });
+        //        c.AddSecurityRequirement(new OpenApiSecurityRequirement()
+        //        {
+        //            {
+        //                new OpenApiSecurityScheme
+        //                {
+        //                    Reference = new OpenApiReference
+        //                    {
+        //                        Type = ReferenceType.SecurityScheme,
+        //                        Id = "Bearer"
+        //                    },
+        //                    Scheme = "oauth2",
+        //                    Name = "Bearer",
+        //                    In = ParameterLocation.Header,
 
-                        },
-                        new List<string>()
-                    }
-                });
+        //                },
+        //                new List<string>()
+        //            }
+        //        });
             });
         }
 

@@ -180,9 +180,15 @@ namespace Notifications.Api.Controllers
                     include: x => x.Include(x => x.EventCategories).ThenInclude(x => x.Event) 
                 );
 
-                var result = mapper.Map<CategoryDTO>(category);
+                var events = new List<Event>();
+                foreach (var vent in category.EventCategories)
+                {
+                    events.Add(vent.Event);
+                }
+
+                //var result = mapper.Map<EventDTO>(events);
                 logger.LogInformation($"Successfully executed {nameof(GetCategoryEvents)}");
-                return Ok(result);
+                return Ok(events);
             }
             catch (Exception ex)
             {

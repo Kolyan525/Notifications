@@ -1,4 +1,8 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -7,10 +11,12 @@ using Notifications.BL.Services;
 using Notifications.DAL.Models;
 using Notifications.DTO.DTOs;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Notifications.Api.Controllers
 {
+    [AllowAnonymous]
     [Route("api/[controller]")]
     [ApiController]
     public class AccountController : ControllerBase
@@ -97,6 +103,31 @@ namespace Notifications.Api.Controllers
                 logger.LogError(ex, $"Something Went Wrong in the {nameof(Login)}");
                 return Problem($"Something Went Wrong in the {nameof(Login)}", statusCode: 500);
             }
+        }
+
+        [HttpGet("google-login")]
+        public IActionResult GoogleLogin()
+        {
+            var props = new AuthenticationProperties { RedirectUri = Url.Action("GoogleResponse", "Account") };
+
+            return Challenge(props, GoogleDefaults.AuthenticationScheme);
+        }
+
+        [HttpGet("google-response")]
+        public async Task<IActionResult> GoogleResponse()
+        {
+            var result = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+            var claims = result.Principal.Identities.FirstOrDefault()
+                .Claims.Select(claim => new
+                {
+                    claim.Issuer,
+                    claim.OriginalIssuer,
+                    claim.Type,
+                    claim.Value,
+                });
+
+            return Accepted(claims);
         }
     }
 }

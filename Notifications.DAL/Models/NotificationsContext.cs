@@ -28,7 +28,7 @@ namespace Notifications.DAL.Models
                 entity.HasKey(x => x.NotificaitonTypeSubscriptionId);
                 entity.Property(x => x.NotificaitonTypeSubscriptionId).ValueGeneratedOnAdd();
                 entity.HasOne(x => x.Subscription).WithMany(x => x.NotificationTypeSubscriptions).OnDelete(DeleteBehavior.Cascade); //.IsRequired().OnDelete(DeleteBehavior.Cascade);
-                entity.HasOne(x => x.NotificationTypes);
+                entity.HasOne(x => x.NotificationType);
             });
 
             modelbuilder.Entity<EventCategory>(entity =>
