@@ -48,6 +48,7 @@ namespace Notifications.BL.Services
             }
         }
 
+        /*
         public async Task<ActionResult<ICollection<Event>>> GetSubscribedEvents(string UserTelegramKey = null, string UserInstagramKey = null, string UserDiscordKey = null)
         {
             try
@@ -99,6 +100,49 @@ namespace Notifications.BL.Services
                 return null;
             }
         }
+        */
+
+        public async Task<Event> AddCategoryToEvent(long eventId, long categoryId)
+        {
+            var cat = await unitOfWork.Categories.Get(x => x.CategoryId == categoryId);
+            var @event = await unitOfWork.Events.Get(x => x.EventId == eventId, new List<string> { "EventCategories" });
+
+            // Check if EC already exists within event
+            var ch = @event.EventCategories.FirstOrDefault(x => x.CategoryId == cat.CategoryId && x.Event.Title == @event.Title);
+            if (ch != null)
+            {
+                return null;
+            }
+
+            @event.EventCategories.Add(new EventCategory { Category = cat });
+            return @event;
+        }
+
+        public async Task<Subscription> Subscribe(long eventId, string userId)
+        {
+            if (!unitOfWork.Events.Exists(eventId)) { return null; }
+
+            var @event = await unitOfWork.Events.Get(x => x.EventId == eventId);
+
+            if (@event == null) return null;
+            if (userId == null) return null;
+
+            var nts = new NotificationTypeSubscription
+            {
+                TelegramKey = userId,
+            };
+
+            var subscription = new Subscription
+            {
+                NotificationTypeSubscriptions = new List<NotificationTypeSubscription> { nts },
+                SubscriptionEvents = new List<SubscriptionEvent> { new SubscriptionEvent { Event = @event } }
+            };
+
+            await unitOfWork.Subscriptions.Insert(subscription);
+            await unitOfWork.Save();
+
+            return subscription;
+        }
     }
 }
 
@@ -107,5 +151,13 @@ namespace Notifications.BL.Services
  * filter Events based on Categories
  * Search Events by Title, Description
  * Sort Events
+ * 
+    зробіть робочу апі і через нього додавайте данні
+    передбачається, що наприклад категорії подій будуть додаватися спершу, тоді вже самі події
+    коли користувач підписуватиметься, ви спершу створите його підписку, а тоді додасте підписку до якоїсь категорії подій
+
+
+
+    Done: add category to event
  */
 

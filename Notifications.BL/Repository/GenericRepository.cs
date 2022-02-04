@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore.Query;
 using Notifications.BL.IRepository;
 using Notifications.DAL.Models;
+using NuGet.ContentModel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -93,6 +94,11 @@ namespace Notifications.BL.Repository
             }
 
             return await query.AsNoTracking().ToListAsync();
+        }
+
+        public bool Exists(object primaryKey)
+        {
+            return db.Find(primaryKey) == null ? false : true;
         }
 
         public async Task Insert(T entity)

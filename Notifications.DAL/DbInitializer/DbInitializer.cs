@@ -28,19 +28,14 @@ namespace Notifications.DAL.DbInitializer
             // TODO: update logs info placements
             await SeedCategories();
             await SeedEvents();
-            //await SeedCategories();
-            //await SeedEventCategories();
-            //await SeedSubscriptions();
-            //await SeedNotificationTypes();
-            //await SeedNotificationTypeSubscriptions();
-            //await SeedSubscriptionEvents();
+            await SeedNotificationTypes();
             await SeedUsersAndRoles();
 
             logger.LogInformation("Finished seeding the database.");
             await context.SaveChangesAsync();
         }
-        // TODO: redo seeder logic on related entities
 
+        // TODO: redo seeder logic on related entities
         public async Task SeedCategories()
         {
             await CreateCategoryIfNotExists(new Category
@@ -159,12 +154,21 @@ namespace Notifications.DAL.DbInitializer
             //});
         }
 
+        public async Task SeedNotificationTypes()
+        {
+            await CreateNotificationTypeIfNotExists("Telegram");
+            await CreateNotificationTypeIfNotExists("Discord");
+            await CreateNotificationTypeIfNotExists("Instagram");
+
+            await context.SaveChangesAsync();
+        }
+
         public async Task CreateEventIfNotExists(Event vent)
         {
             var @event = await context.Events.FirstOrDefaultAsync(
                 e => e.Title == vent.Title &&
                 e.Description == vent.Description &&
-                e.StartAt == vent.StartAt);
+                e.ShortDesc == vent.ShortDesc);
             if (@event == null)
             {
                 await context.Events.AddAsync(vent);
@@ -178,50 +182,11 @@ namespace Notifications.DAL.DbInitializer
             var cat = await context.Categories.FirstOrDefaultAsync(e => e.CategoryName == category.CategoryName);
             if (cat == null)
             {
-                var newCategory = new Category
-                {
-                    CategoryName = category.CategoryName
-                };
-
-                await context.Categories.AddAsync(newCategory);
+                await context.Categories.AddAsync(category);
             }
         }
 
-        public async Task<EventCategory> CreateEventCategoryIfNotExists(EventCategory eventCategory)
-        {
-            var ec = await context.EventCategories.FirstOrDefaultAsync(e => e.Category == eventCategory.Category && e.Event == eventCategory.Event);
-            if (ec == null)
-            {
-                var newEventCategory = new EventCategory
-                {
-                    Event = eventCategory.Event,
-                    Category = eventCategory.Category,
-                };
-
-                await context.EventCategories.AddAsync(newEventCategory);
-                return newEventCategory;
-            }
-            return ec;
-        }
-
-        public async Task<SubscriptionEvent> CreateSubscriptionEventIfNotExists(SubscriptionEvent subscriptionEvent)
-        {
-            var se = await context.SubscriptionEvents.FirstOrDefaultAsync(e => e.Event == subscriptionEvent.Event && e.Subscription == subscriptionEvent.Subscription);
-            if (se == null)
-            {
-                var newSubscriptionEvent = new SubscriptionEvent
-                {
-                    Event = subscriptionEvent.Event,
-                    Subscription = subscriptionEvent.Subscription
-                };
-
-                await context.SubscriptionEvents.AddAsync(newSubscriptionEvent);
-                return newSubscriptionEvent;
-            }
-            return se;
-        }
-
-        public async Task<NotificationType> CreateNotificationTypeIfNotExists(string notificationTypeName)
+        public async Task CreateNotificationTypeIfNotExists(string notificationTypeName)
         {
             var nt = await context.NotificationTypes.FirstOrDefaultAsync(n => n.NotificationName == notificationTypeName);
             if (nt == null)
@@ -230,53 +195,11 @@ namespace Notifications.DAL.DbInitializer
                 {
                     NotificationName = notificationTypeName
                 };
-
                 await context.NotificationTypes.AddAsync(newNotificationType);
-                return newNotificationType;
             }
-            return nt;
         }
 
-        public async Task<NotificationTypeSubscription> CreateNotificationTypeSubscriptionIfNotExists(NotificationTypeSubscription notification)
-        {
-            var nts = await context.NotificationTypeSubscription.FirstOrDefaultAsync(n => n.NotificationType == notification.NotificationType
-                            && n.TelegramKey == notification.TelegramKey && n.InstagramKey == notification.InstagramKey && n.DiscordKey == notification.DiscordKey && n.Subscription == notification.Subscription);
-
-            if (nts == null)
-            {
-                var newNotificationTypeSubscription = new NotificationTypeSubscription
-                {
-                    NotificationType = notification.NotificationType,
-                    TelegramKey = notification.TelegramKey,
-                    InstagramKey = notification.InstagramKey,
-                    DiscordKey = notification.DiscordKey,
-                    Subscription = notification.Subscription
-                };
-
-                await context.NotificationTypeSubscription.AddAsync(newNotificationTypeSubscription);
-                return newNotificationTypeSubscription;
-            }
-            return nts;
-        }
-
-        public async Task<Subscription> CreateSubscriptionIfNotExists(Subscription subscription)
-        {
-            var sub = await context.Subscriptions.FirstOrDefaultAsync(s => s.NotificationTypeSubscriptions == subscription.NotificationTypeSubscriptions 
-                && s.SubscriptionEvents == subscription.SubscriptionEvents);
-            if (sub == null)
-            {
-                var newSubscription = new Subscription
-                {
-                    NotificationTypeSubscriptions = subscription.NotificationTypeSubscriptions,
-                    SubscriptionEvents = subscription.SubscriptionEvents
-                };
-
-                await context.Subscriptions.AddAsync(newSubscription);
-                return newSubscription;
-            }
-            return sub;
-        }
-
+        // Manager
         public async Task SeedUsersAndRoles()
         {
             string[] roles = new string[] { "Admin", "Manager" };
@@ -294,7 +217,7 @@ namespace Notifications.DAL.DbInitializer
 
             UserManager<ApplicationUser> userManager = services.GetService<UserManager<ApplicationUser>>();
 
-            if (userManager.FindByEmailAsync("mykola.kalinichenko@oa.edu.ua").Result == null && userManager.FindByEmailAsync("denys.vozniuk@oa.edu.ua").Result == null)
+            if (userManager.FindByEmailAsync("mykola.kalinichenko@oa.edu.ua").Result == null || userManager.FindByEmailAsync("denys.vozniuk@oa.edu.ua").Result == null)
             {
                 logger.LogInformation("Starting to seed Users");
                 // https://stackoverflow.com/questions/50785009/how-to-seed-an-admin-user-in-ef-core-2-1-0
@@ -320,7 +243,7 @@ namespace Notifications.DAL.DbInitializer
                 IdentityResult adminResult = userManager.CreateAsync(admin, "Kolk@1337").Result;
                 IdentityResult managerResult = userManager.CreateAsync(admin, "Den@1337").Result;
 
-                if (adminResult.Succeeded && managerResult.Succeeded)
+                if (adminResult.Succeeded || managerResult.Succeeded)
                 {
                     userManager.AddToRoleAsync(admin, "Admin").Wait();
                     userManager.AddToRoleAsync(manager, "Manager").Wait();

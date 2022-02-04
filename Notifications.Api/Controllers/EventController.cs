@@ -55,7 +55,6 @@ namespace Notifications.Api.Controllers
         }
 
         // GET api/<EventController>/5
-        [Authorize]
         [HttpGet("{id:long}", Name = "GetEvent")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -171,44 +170,55 @@ namespace Notifications.Api.Controllers
                 return BadRequest("Submitted data is invalid");
             }
         }
-
-        [HttpGet("/GetSpecialEvent/{id:long}", Name = "GetSpecialEvent")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        
+        [HttpPut("{EventId:long}/{CategoryId:long}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<ICollection<string>>> GetSpecialEvent(long id)
+        public async Task<ActionResult<Event>> AddCategoryToEvent(long EventId, long CategoryId)
         {
             try
             {
-                var vent = await notificationsService.GetEventCategories(id);
-                //var result = mapper.Map<EventDTO>(vent);
-                logger.LogInformation($"Successfully executed {nameof(GetSpecialEvent)}");
+                if (!unitOfWork.Events.Exists(EventId)) return StatusCode(409, "Event doesn't exists.");
+                if (!unitOfWork.Categories.Exists(CategoryId)) return StatusCode(409, "Category doesn't exists.");
+
+                var vent = await notificationsService.AddCategoryToEvent(EventId, CategoryId);
+                if (vent == null)
+	            {
+                    return StatusCode(409, "Already exists.");
+                }   
+                unitOfWork.Events.Update(vent); // tracking question?
+                await unitOfWork.Save();
+                var result = mapper.Map<EventDTO>(vent);
+                logger.LogInformation($"Successfully executed {nameof(AddCategoryToEvent)}");
                 return Ok(vent);
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, $"Something went wrong in the {nameof(GetSpecialEvent)}");
+                logger.LogError(ex, $"Something went wrong in the {nameof(AddCategoryToEvent)}");
                 return StatusCode(500, "Internal Server Error. Please try again later.");
             }
         }
-        
-        [HttpGet]
-        [Authorize]
-        [Route("GetSubscribedEvents")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+
+        [HttpPost("{EventId:long}/{TelegramId}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<ICollection<Event>>> GetSubscribedEvents(string TelegramKey = "@Nicolas_Cage525", string InstagramKey = "@DenVozniuk007", string DiscordKey = null)
+        public async Task<ActionResult<Subscription>> SubscribeToEvent(long EventId, string TelegramId)
         {
             try
             {
-                var vent = await notificationsService.GetSubscribedEvents(TelegramKey, InstagramKey, DiscordKey);
-                //var result = mapper.Map<EventDTO>(vent);
-                logger.LogInformation($"Successfully executed {nameof(GetSubscribedEvents)}");
-                return Ok(vent);
+                var sub = await notificationsService.Subscribe(EventId, TelegramId);
+                if (sub == null)
+                {
+                    return StatusCode(409, "Something went wrong");
+                }
+                logger.LogInformation($"Successfully executed {nameof(SubscribeToEvent)}");
+                return Ok(sub);
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, $"Something went wrong in the {nameof(GetSubscribedEvents)}");
+                logger.LogError(ex, $"Something went wrong in the {nameof(SubscribeToEvent)}");
                 return StatusCode(500, "Internal Server Error. Please try again later.");
             }
         }
