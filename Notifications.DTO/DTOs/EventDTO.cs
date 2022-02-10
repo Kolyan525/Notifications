@@ -20,7 +20,7 @@ namespace Notifications.DTO.DTOs
         public string Description { get; set; }
 
         //[Required]
-        //[StringLength(maximumLength: 50, ErrorMessage = "Country Name is too long")]
+        //[StringLength(maximumLength: 50, ErrorMessage = "Link is too long")]
         public string EventLink { get; set; }
 
         // Required
@@ -39,5 +39,11 @@ namespace Notifications.DTO.DTOs
         // These should refer to DTO as well
         public ICollection<EventCategory> EventCategories { get; set; }
         public ICollection<SubscriptionEvent> SubscriptionEvents { get; set; }
+
+        public string Start
+        {
+            get { return StartAt.ToLocalTime().ToString(); }
+            set { StartAt = Convert.ToDateTime(value); }
+        }
     }
 }

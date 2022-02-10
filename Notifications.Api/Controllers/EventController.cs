@@ -3,16 +3,12 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Notifications.BL.IRepository;
+using Notifications.BL.Services;
 using Notifications.DAL.Models;
 using Notifications.DTO.DTOs;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Linq;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authorization;
-using System.Data;
-using Notifications.BL.Services;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -38,11 +34,12 @@ namespace Notifications.Api.Controllers
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> GetEvents()
+        public async Task<IActionResult> GetEvents([FromQuery] RequestParams requestParams)
         {
             try
             {
-                var events = await unitOfWork.Events.GetAll();
+                // TODO: check size 1, page 10 content in events variable
+                var events = await unitOfWork.Events.GetAll(requestParams);
                 var results = mapper.Map<IList<EventDTO>>(events);
                 logger.LogInformation($"Successfully executed {nameof(GetEvents)}");
                 return Ok(results);
@@ -62,8 +59,8 @@ namespace Notifications.Api.Controllers
         {
             try
             {
-                var vent = await unitOfWork.Events.Get(x => x.EventId == id, new List<string> { "EventCategories" }); // TODO: fvent
-                var result = mapper.Map<EventDTO>(vent);
+                var @event = await unitOfWork.Events.Get(x => x.EventId == id, new List<string> { "EventCategories", "SubscriptionEvents" });
+                var result = mapper.Map<EventDTO>(@event);
                 logger.LogInformation($"Successfully executed {nameof(GetEvent)}");
                 return Ok(result);
             }
@@ -89,11 +86,11 @@ namespace Notifications.Api.Controllers
 
             try
             {
-                var vent = mapper.Map<Event>(eventDTO);
-                await unitOfWork.Events.Insert(vent);
+                var @event = mapper.Map<Event>(eventDTO);
+                await unitOfWork.Events.Insert(@event);
                 await unitOfWork.Save();
 
-                return CreatedAtRoute(nameof(GetEvent), new { id = vent.EventId }, vent);
+                return CreatedAtRoute(nameof(GetEvent), new { id = @event.EventId }, @event);
             }
             catch (Exception ex)
             {
@@ -117,15 +114,15 @@ namespace Notifications.Api.Controllers
 
             try
             {
-                var vent = await unitOfWork.Events.Get(e => e.EventId == EventId);
-                if (vent == null)
+                var @event = await unitOfWork.Events.Get(e => e.EventId == EventId);
+                if (@event == null)
                 {
                     logger.LogError($"Invalid UPDATE attempt in {nameof(UpdateEvent)}");
                     return BadRequest("Submitted data is invalid");
                 }
 
-                mapper.Map(eventDTO, vent);
-                unitOfWork.Events.Update(vent); // tracking question?
+                mapper.Map(eventDTO, @event);
+                unitOfWork.Events.Update(@event); // tracking question?
                 await unitOfWork.Save();
 
                 return NoContent();
@@ -152,8 +149,8 @@ namespace Notifications.Api.Controllers
 
             try
             {
-                var vent = await unitOfWork.Events.Get(x => x.EventId == id);
-                if (vent == null)
+                var @event = await unitOfWork.Events.Get(x => x.EventId == id);
+                if (@event == null)
                 {
                     logger.LogError($"Invalid DELETE attempt in {nameof(DeleteEvent)}");
                     return BadRequest("Submitted data is invalid");
@@ -170,7 +167,7 @@ namespace Notifications.Api.Controllers
                 return BadRequest("Submitted data is invalid");
             }
         }
-        
+
         [HttpPut("{EventId:long}/{CategoryId:long}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
@@ -182,16 +179,16 @@ namespace Notifications.Api.Controllers
                 if (!unitOfWork.Events.Exists(EventId)) return StatusCode(409, "Event doesn't exists.");
                 if (!unitOfWork.Categories.Exists(CategoryId)) return StatusCode(409, "Category doesn't exists.");
 
-                var vent = await notificationsService.AddCategoryToEvent(EventId, CategoryId);
-                if (vent == null)
-	            {
+                var @event = await notificationsService.AddCategoryToEvent(EventId, CategoryId);
+                if (@event == null)
+                {
                     return StatusCode(409, "Already exists.");
-                }   
-                unitOfWork.Events.Update(vent); // tracking question?
+                }
+                unitOfWork.Events.Update(@event); // tracking question?
                 await unitOfWork.Save();
-                var result = mapper.Map<EventDTO>(vent);
+                var result = mapper.Map<EventDTO>(@event);
                 logger.LogInformation($"Successfully executed {nameof(AddCategoryToEvent)}");
-                return Ok(vent);
+                return Ok(@event);
             }
             catch (Exception ex)
             {
@@ -215,6 +212,75 @@ namespace Notifications.Api.Controllers
                 }
                 logger.LogInformation($"Successfully executed {nameof(SubscribeToEvent)}");
                 return Ok(sub);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, $"Something went wrong in the {nameof(SubscribeToEvent)}");
+                return StatusCode(500, "Internal Server Error. Please try again later.");
+            }
+        }
+
+        [HttpGet("{EventId:long}/{TelegramId}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<Subscription>> UnsubscribeToEvent(long EventId, string TelegramId)
+        {
+            try
+            {
+                var sub = await notificationsService.Unsubscribe(EventId, TelegramId);
+                if (sub == null)
+                {
+                    return StatusCode(409, "Something went wrong");
+                }
+                logger.LogInformation($"Successfully executed {nameof(UnsubscribeToEvent)}");
+                return sub;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, $"Something went wrong in the {nameof(UnsubscribeToEvent)}");
+                return StatusCode(500, "Internal Server Error. Please try again later.");
+            }
+        }
+
+        [HttpGet("Telegram/{TelegramId}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<Subscription>> ListOfSubscribedEvents(string TelegramId)
+        {
+            try
+            {
+                var events = await notificationsService.ListOfSubscribedEvents(TelegramId);
+                if (events == null)
+                {
+                    return StatusCode(409, "Something went wrong");
+                }
+                logger.LogInformation($"Successfully executed {nameof(ListOfSubscribedEvents)}");
+                return Ok(events);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, $"Something went wrong in the {nameof(ListOfSubscribedEvents)}");
+                return StatusCode(500, "Internal Server Error. Please try again later.");
+            }
+        }
+
+        //[HttpGet("Search/{Search}")]
+        [HttpGet("Search")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> Seacrh([FromQuery] string Search)
+        {
+            try
+            {
+                var events = await notificationsService.SearchEvents(Search);
+                if (events == null)
+                    return NoContent();
+
+                logger.LogInformation($"Successfully executed {nameof(SubscribeToEvent)}");
+                return Ok(events);
             }
             catch (Exception ex)
             {

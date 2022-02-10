@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using AutoMapper;
 using Notifications.DAL.Models;
 using System;
 using System.Collections.Generic;
@@ -16,16 +17,17 @@ namespace Notifications.DAL.DbInitializer
         private readonly NotificationsContext context;
         private readonly IServiceProvider services;
         private readonly ILogger<DbInitializer> logger;
+        readonly IMapper mapper;
 
-        public DbInitializer(NotificationsContext context, IServiceProvider services, ILogger<DbInitializer> logger)
+        public DbInitializer(NotificationsContext context, IServiceProvider services, ILogger<DbInitializer> logger, IMapper mapper)
         {
             this.context = context;
             this.services = services;
             this.logger = logger;
+            this.mapper = mapper;
         }
         public async Task Initialize()
         {
-            // TODO: update logs info placements
             await SeedCategories();
             await SeedEvents();
             await SeedNotificationTypes();
@@ -35,7 +37,6 @@ namespace Notifications.DAL.DbInitializer
             await context.SaveChangesAsync();
         }
 
-        // TODO: redo seeder logic on related entities
         public async Task SeedCategories()
         {
             await CreateCategoryIfNotExists(new Category
@@ -46,6 +47,24 @@ namespace Notifications.DAL.DbInitializer
             {
                 CategoryName = "Quarantine"
             });
+            await CreateCategoryIfNotExists(new Category
+            {
+                CategoryName = "Lecture"
+            });
+            await CreateCategoryIfNotExists(new Category
+            {
+                CategoryName = "Festivals-fairs"
+            });
+            await CreateCategoryIfNotExists(new Category
+            {
+                CategoryName = "Master-Class"
+            });
+            await CreateCategoryIfNotExists(new Category
+            {
+                CategoryName = "Organizational"
+            });
+
+            logger.LogInformation("Starting to seed Categories");
 
             await context.SaveChangesAsync();
         }
@@ -54,13 +73,17 @@ namespace Notifications.DAL.DbInitializer
         {
             var categoryUniversal = context.Categories.First(x => x.CategoryName == "Universal");
             var categoryQuarantine = context.Categories.First(x => x.CategoryName == "Quarantine");
+            var categoryLecture = context.Categories.First(x => x.CategoryName == "Lecture");
+            var categoryFestivalsFairs = context.Categories.First(x => x.CategoryName == "Festivals-fairs");
+            var categoryMasterClass = context.Categories.First(x => x.CategoryName == "Master-Class");
+            var categoryOrganizational = context.Categories.First(x => x.CategoryName == "Organizational");
 
             await CreateEventIfNotExists(new Event
             {
                 Title = "Online Learning in NaU\"OA\" Starts",
                 Description = "Dear students! for the next three weeks we need all together (students and teachers) to unite so as not to lose precious time of the second semester. Therefore an online learning will be established.",
                 ShortDesc = "Very short description for online learning",
-                EventLink = "https://docs.google.com/document/d/1X7SwM3uUyATgTzd6XIfqop1moM26FsjXfiMxfZqQCZA/edit",
+                EventLink = "https://docs.google.com/document/d/1X7SwM3uUyATgTzd6XIfqop1moM26FsjXfiMxfZqQCZA",
                 StartAt = DateTime.Today,
                 EventCategories = new List<EventCategory>
                 {
@@ -71,6 +94,10 @@ namespace Notifications.DAL.DbInitializer
                     new EventCategory
                     {
                         Category = categoryQuarantine
+                    },
+                    new EventCategory
+                    {
+                        Category = categoryOrganizational
                     }
                 }
             });
@@ -80,7 +107,7 @@ namespace Notifications.DAL.DbInitializer
                 Title = "International rating",
                 Description = "Congratulations, My name is Natalia, I deal with international rankings and NaU\"OA\" membership in them. This year, U - Multirank is conducting a survey among students majoring in Computer Science. Please contribute to the high place of NaU\"OA\" in this ranking by filling out a small survey. I pinned the letter below",
                 ShortDesc = "Very short description for international rating",
-                EventLink = "https://che-survey.de/uc/umr2022/ ",
+                EventLink = "https://che-survey.de/uc/umr2022/",
                 StartAt = new DateTime(2021, 12, 20, 11, 24, 00),
                 EventCategories = new List<EventCategory>
                 {
@@ -90,6 +117,72 @@ namespace Notifications.DAL.DbInitializer
                     }
                 }
             });
+
+            await CreateEventIfNotExists(new Event
+            {
+                Title = "Discussion of the Regulations",
+                Description = "Public discussion of the Regulations preject on mentoring in NaU\"OA\"",
+                ShortDesc = "We should discuss that, really!",
+                EventLink = "https://che-survey.de/uc/umr2022/",
+                StartAt = new DateTime(2022, 2, 10, 12, 00, 00),
+                EventCategories = new List<EventCategory>
+                {
+                    new EventCategory
+                    {
+                        Category = categoryUniversal
+                    },
+                    new EventCategory
+                    {
+                        Category = categoryOrganizational
+                    }
+                }
+            });
+
+            await CreateEventIfNotExists(new Event
+            {
+                Title = "Lecture by Rustem Ablyatif",
+                Description = "Open University. Lecture by Rustem Ablyatif. Lessons for Ukraine through the prism of the history and modernity of Turkey Republic",
+                ShortDesc = "You should come and listen to our lection. It tackles some important information. Speaker is Rustem Ablyatif.",
+                EventLink = String.Empty,
+                StartAt = new DateTime(2022, 2, 10, 15, 30, 00),
+                EventCategories = new List<EventCategory>
+                {
+                    new EventCategory
+                    {
+                        Category = categoryUniversal
+                    },
+                    new EventCategory
+                    {
+                        Category = categoryLecture
+                    }
+                }
+            });
+
+            await CreateEventIfNotExists(new Event
+            {
+                Title = "Master class about labor law",
+                Description = "You will find: - 40 minutes of practical information; -20 minutes Q &Asession: answers to all questions; -5 innovations in labor legislation that every educator should know: about wages during quarantine, unpaid leave, remote and homework; -real success cases of protection of labor rights by educators.",
+                ShortDesc = "Online master class \"TOP - 5 short stories in labor law for educators\"",
+                EventLink = "https://forms.gle/AUCJ8w4Tjeb74Lpw8",
+                StartAt = new DateTime(2022, 2, 10, 15, 30, 00),
+                EventCategories = new List<EventCategory>
+                {
+                    new EventCategory
+                    {
+                        Category = categoryUniversal
+                    },
+                    new EventCategory
+                    {
+                        Category = categoryLecture
+                    },
+                    new EventCategory
+                    {
+                        Category = categoryMasterClass
+                    }
+                }
+            });
+
+            logger.LogInformation("Starting to seed Events");
 
             await context.SaveChangesAsync();
 
@@ -160,7 +253,76 @@ namespace Notifications.DAL.DbInitializer
             await CreateNotificationTypeIfNotExists("Discord");
             await CreateNotificationTypeIfNotExists("Instagram");
 
+            logger.LogInformation("Starting to seed NotificationTypes");
             await context.SaveChangesAsync();
+        }
+
+        public async Task SeedUsersAndRoles()
+        {
+            string[] roles = new string[] { "Admin", "Manager" };
+
+            foreach (string role in roles)
+            {
+                var roleStore = new RoleStore<IdentityRole>(context);
+
+                if (!context.Roles.Any(r => r.Name == role))
+                {
+                    logger.LogInformation("Starting to seed Roles");
+                    await roleStore.CreateAsync(new IdentityRole(role));
+                }
+            }
+
+            UserManager<ApplicationUser> userManager = services.GetService<UserManager<ApplicationUser>>();
+
+            ApplicationUser admin = new ApplicationUser
+            {
+                UserName = "Kolyan525",
+                FirstName = "Kolya",
+                LastName = "Kalina",
+                Email = "mykola.kalinichenko@oa.edu.ua",
+                EmailConfirmed = true
+            };
+
+            ApplicationUser manager = new ApplicationUser
+            {
+                UserName = "Denys",
+                FirstName = "Denys",
+                LastName = "Vozniuk",
+                Email = "denys.vozniuk@oa.edu.ua",
+                EmailConfirmed = true
+            };
+
+            var adminEmailExists = userManager.FindByEmailAsync(admin.Email).Result == null;
+            var adminUsernameExists = userManager.FindByNameAsync(admin.UserName).Result == null;
+
+            if (adminEmailExists && adminUsernameExists)
+            {
+                logger.LogInformation("Starting to seed Admin");
+                // https://stackoverflow.com/questions/50785009/how-to-seed-an-admin-user-in-ef-core-2-1-0
+
+                IdentityResult adminResult = userManager.CreateAsync(admin, "Kolk@1337").Result;
+
+                if (adminResult.Succeeded)
+                    userManager.AddToRoleAsync(admin, "Admin").Wait();
+                else
+                    logger.LogInformation("Admin seeding failed!");
+            }
+
+            var managerEmailExists = userManager.FindByEmailAsync(manager.Email).Result == null;
+            var managerUsernameExists = userManager.FindByNameAsync(manager.UserName).Result == null;
+
+            if (managerEmailExists && managerUsernameExists)
+            {
+                logger.LogInformation("Starting to seed Manager");
+                // https://stackoverflow.com/questions/50785009/how-to-seed-an-admin-user-in-ef-core-2-1-0
+
+                IdentityResult managerResult = userManager.CreateAsync(manager, "Deny@1337").Result;
+
+                if (managerResult.Succeeded)
+                    userManager.AddToRoleAsync(manager, "Manager").Wait();
+                else
+                    logger.LogInformation("Manager seeding failed!");
+            }
         }
 
         public async Task CreateEventIfNotExists(Event vent)
@@ -168,13 +330,26 @@ namespace Notifications.DAL.DbInitializer
             var @event = await context.Events.FirstOrDefaultAsync(
                 e => e.Title == vent.Title &&
                 e.Description == vent.Description &&
-                e.ShortDesc == vent.ShortDesc);
+                e.ShortDesc == vent.ShortDesc &&
+                e.EventLink == vent.EventLink &&
+                e.StartAt == vent.StartAt);
             if (@event == null)
-            {
                 await context.Events.AddAsync(vent);
-            }
+            //else
+            //{
+            //    // possible, we need to have a logic of how to update an existing event
 
-            // possible, we need to have a logic of how to update an existing event
+            //    @event.Title = vent.Title;
+            //    @event.Description = vent.Description;
+            //    @event.ShortDesc = vent.ShortDesc;
+            //    @event.EventLink = vent.EventLink;
+            //    @event.StartAt = vent.StartAt;
+            //    @event.EventCategories = vent.EventCategories;
+
+            //    //mapper.Map(vent, @event);
+            //    context.Attach(@event);
+            //    context.Entry(@event).State = EntityState.Modified;
+            //}
         }
 
         public async Task CreateCategoryIfNotExists(Category category)
@@ -196,62 +371,6 @@ namespace Notifications.DAL.DbInitializer
                     NotificationName = notificationTypeName
                 };
                 await context.NotificationTypes.AddAsync(newNotificationType);
-            }
-        }
-
-        // Manager
-        public async Task SeedUsersAndRoles()
-        {
-            string[] roles = new string[] { "Admin", "Manager" };
-
-            foreach (string role in roles)
-            {
-                var roleStore = new RoleStore<IdentityRole>(context);
-
-                if (!context.Roles.Any(r => r.Name == role))
-                {
-                    logger.LogInformation("Starting to seed Roles");
-                    await roleStore.CreateAsync(new IdentityRole(role));
-                }
-            }
-
-            UserManager<ApplicationUser> userManager = services.GetService<UserManager<ApplicationUser>>();
-
-            if (userManager.FindByEmailAsync("mykola.kalinichenko@oa.edu.ua").Result == null || userManager.FindByEmailAsync("denys.vozniuk@oa.edu.ua").Result == null)
-            {
-                logger.LogInformation("Starting to seed Users");
-                // https://stackoverflow.com/questions/50785009/how-to-seed-an-admin-user-in-ef-core-2-1-0
-
-                ApplicationUser admin = new ApplicationUser
-                {
-                    UserName = "Kolyan525",
-                    FirstName = "Kolya",
-                    LastName = "Kalina",
-                    Email = "mykola.kalinichenko@oa.edu.ua",
-                    EmailConfirmed = true
-                };
-
-                ApplicationUser manager = new ApplicationUser
-                {
-                    UserName = "Denys",
-                    FirstName = "Denys",
-                    LastName = "Vozniuk",
-                    Email = "denys.vozniuk@oa.edu.ua",
-                    EmailConfirmed = true
-                };
-
-                IdentityResult adminResult = userManager.CreateAsync(admin, "Kolk@1337").Result;
-                IdentityResult managerResult = userManager.CreateAsync(admin, "Den@1337").Result;
-
-                if (adminResult.Succeeded || managerResult.Succeeded)
-                {
-                    userManager.AddToRoleAsync(admin, "Admin").Wait();
-                    userManager.AddToRoleAsync(manager, "Manager").Wait();
-                }
-                else
-                {
-                    logger.LogInformation("User seeding failed!");
-                }
             }
         }
     }

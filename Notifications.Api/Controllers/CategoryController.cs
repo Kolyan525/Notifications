@@ -168,7 +168,7 @@ namespace Notifications.Api.Controllers
             }
         }
 
-        [HttpGet("/GetCategoryEvents/{id:long}", Name = "GetCategoryEvents")]
+        [HttpGet("GetCategoryEvents/{id:long}", Name = "GetCategoryEvents")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<Category>> GetCategoryEvents(long id)
@@ -180,10 +180,13 @@ namespace Notifications.Api.Controllers
                     include: x => x.Include(x => x.EventCategories).ThenInclude(x => x.Event) 
                 );
 
+                if (category == null)
+                    return BadRequest();
+                
                 var events = new List<Event>();
-                foreach (var vent in category.EventCategories)
+                foreach (var @event in category.EventCategories)
                 {
-                    events.Add(vent.Event);
+                    events.Add(@event.Event);
                 }
 
                 //var result = mapper.Map<EventDTO>(events);

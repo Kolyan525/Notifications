@@ -1,10 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
+using Notifications.DAL.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
+using X.PagedList;
 
 namespace Notifications.BL.IRepository
 {
@@ -15,8 +17,8 @@ namespace Notifications.BL.IRepository
             Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null,
             List<string> includes = null
         );
+        Task<IPagedList<T>> GetAll(RequestParams requestParams, List<string> includes = null);
         Task<T> Get(Expression<Func<T, bool>> expression, List<string> includes = null);
-
         Task<T> GetFirstOrDefault(Expression<Func<T, bool>> selector,
                                           Expression<Func<T, bool>> predicate = null,
                                           Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null,

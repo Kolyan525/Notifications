@@ -2,13 +2,12 @@
 using Microsoft.EntityFrameworkCore.Query;
 using Notifications.BL.IRepository;
 using Notifications.DAL.Models;
-using NuGet.ContentModel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Security.Principal;
 using System.Threading.Tasks;
+using X.PagedList;
 
 namespace Notifications.BL.Repository
 {
@@ -94,6 +93,21 @@ namespace Notifications.BL.Repository
             }
 
             return await query.AsNoTracking().ToListAsync();
+        }
+
+        public async Task<IPagedList<T>> GetAll(RequestParams requestParams, List<string> includes = null)
+        {
+            IQueryable<T> query = db;
+
+            if (includes != null)
+            {
+                foreach (var includeProperty in includes)
+                {
+                    query = query.Include(includeProperty);
+                }
+            }
+
+            return await query.AsNoTracking().ToPagedListAsync(requestParams.PageNumber, requestParams.PageSize);
         }
 
         public bool Exists(object primaryKey)
