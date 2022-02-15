@@ -70,6 +70,31 @@ namespace Notifications.BL.Repository
             return await query.AsNoTracking().FirstOrDefaultAsync(selector);
         }
 
+        public async Task<IList<T>> GetAllHere(Expression<Func<T, bool>> selector,
+                                          Expression<Func<T, bool>> predicate = null,
+                                          Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null,
+                                          Func<IQueryable<T>, IIncludableQueryable<T, object>> include = null)
+        {
+            IQueryable<T> query = db;
+
+            if (include != null)
+            {
+                query = include(query);
+            }
+
+            if (predicate != null)
+            {
+                query = query.Where(predicate);
+            }
+
+            if (orderBy != null)
+            {
+                query = orderBy(query);
+            }
+
+            return await query.AsNoTracking().Where(selector).ToListAsync();
+        }
+
         public async Task<IList<T>> GetAll(Expression<Func<T, bool>> expression = null, Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null, List<string> includes = null)
         {
             IQueryable<T> query = db;

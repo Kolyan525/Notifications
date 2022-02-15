@@ -177,7 +177,9 @@ namespace Notifications.Api.Controllers
             {
                 var category = await unitOfWork.Categories.GetFirstOrDefault(
                     x => x.CategoryId == id, 
-                    include: x => x.Include(x => x.EventCategories).ThenInclude(x => x.Event) 
+                    include: x => x
+                        .Include(x => x.EventCategories)
+                        .ThenInclude(x => x.Event)
                 );
 
                 if (category == null)
@@ -185,13 +187,12 @@ namespace Notifications.Api.Controllers
                 
                 var events = new List<Event>();
                 foreach (var @event in category.EventCategories)
-                {
                     events.Add(@event.Event);
-                }
 
+                var results = mapper.Map<IList<CreateEventDTO>>(events);
                 //var result = mapper.Map<EventDTO>(events);
                 logger.LogInformation($"Successfully executed {nameof(GetCategoryEvents)}");
-                return Ok(events);
+                return Ok(results);
             }
             catch (Exception ex)
             {

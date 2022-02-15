@@ -84,7 +84,7 @@ namespace Notifications.DAL.DbInitializer
                 Description = "Dear students! for the next three weeks we need all together (students and teachers) to unite so as not to lose precious time of the second semester. Therefore an online learning will be established.",
                 ShortDesc = "Very short description for online learning",
                 EventLink = "https://docs.google.com/document/d/1X7SwM3uUyATgTzd6XIfqop1moM26FsjXfiMxfZqQCZA",
-                StartAt = DateTime.Today,
+                StartAt = new DateTime(2021, 11, 20, 9, 00, 00),
                 EventCategories = new List<EventCategory>
                 {
                     new EventCategory
