@@ -1,10 +1,6 @@
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using Notifications.BL.IRepository;
 using Notifications.BL.Repository;
@@ -13,6 +9,12 @@ using Notifications.DAL.DbInitializer;
 using Notifications.DAL.Models;
 using Notifications.DTO.Configurations;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Hangfire;
+using System.Linq;
+using System.Collections.Generic;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Hosting;
+using Microsoft.AspNetCore.Hosting;
 
 namespace Notifications.Api
 {
@@ -38,6 +40,8 @@ namespace Notifications.Api
                 options.EnableSensitiveDataLogging();
             }, ServiceLifetime.Scoped);
 
+            services.AddHangfire(h => h.UseSqlServerStorage(connection));
+            services.AddHangfireServer();
 
             services.AddAuthentication(options =>
             {
@@ -72,47 +76,45 @@ namespace Notifications.Api
             services.AddTransient<DbInitializer>();
             services.AddScoped<IAuthManager, AuthManager>();
             
-            /*
-            services.AddSwaggerGen(c =>
-            {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "NotificationsApi", Version = "v1" });
-                c.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
-                /*  c.AddSecurityDefinition("Bearer",
-                      new OpenApiSecurityScheme
-                      {
-                          Description =
-                          //"JWT Authorization header using the Bearer scheme. \r\n\r\n Enter 'Bearer' [space] and then your token in the text input below.\r\n\r\nExample: \"Bearer 12345abcdef\"",
-                          "Put **_ONLY_** your JWT Bearer token on textbox below!",
-                          Name = "Authorization",
-                          In = ParameterLocation.Header,
-                          //Type = SecuritySchemeType.ApiKey,
-                          Type = SecuritySchemeType.Http,
-                          Scheme = "Bearer"
-                      });
-                  c.AddSecurityRequirement(new OpenApiSecurityRequirement()
-                  {
-                      {
-                          new OpenApiSecurityScheme
-                          {
-                              Reference = new OpenApiReference
-                              {
-                                  Type = ReferenceType.SecurityScheme,
-                                  Id = "Bearer"
-                              },
-                              Scheme = "oauth2",
-                              Name = "Bearer",
-                              In = ParameterLocation.Header,
+            //services.AddSwaggerGen(c =>
+            //{
+            //    c.SwaggerDoc("v1", new OpenApiInfo { Title = "NotificationsApi", Version = "v1" });
+            //    c.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
+            //    c.AddSecurityDefinition("Bearer",
+            //          new OpenApiSecurityScheme
+            //          {
+            //              Description =
+            //              //"JWT Authorization header using the Bearer scheme. \r\n\r\n Enter 'Bearer' [space] and then your token in the text input below.\r\n\r\nExample: \"Bearer 12345abcdef\"",
+            //              "Put **_ONLY_** your JWT Bearer token on textbox below!",
+            //              Name = "Authorization",
+            //              In = ParameterLocation.Header,
+            //              //Type = SecuritySchemeType.ApiKey,
+            //              Type = SecuritySchemeType.Http,
+            //              Scheme = "Bearer"
+            //          });
+            //      c.AddSecurityRequirement(new OpenApiSecurityRequirement()
+            //      {
+            //          {
+            //              new OpenApiSecurityScheme
+            //              {
+            //                  Reference = new OpenApiReference
+            //                  {
+            //                      Type = ReferenceType.SecurityScheme,
+            //                      Id = "Bearer"
+            //                  },
+            //                  Scheme = "oauth2",
+            //                  Name = "Bearer",
+            //                  In = ParameterLocation.Header,
                     
-                          },
-                          new List<string>()
-                      }
-                  });
-            });
-            */
+            //              },
+            //              new List<string>()
+            //          }
+            //      });
+            //});
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {
@@ -132,6 +134,8 @@ namespace Notifications.Api
 
             app.UseAuthentication();
             app.UseAuthorization();
+
+            app.UseHangfireDashboard("/dashboard");
 
             app.UseEndpoints(endpoints =>
             {

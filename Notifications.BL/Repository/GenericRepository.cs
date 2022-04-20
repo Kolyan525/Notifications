@@ -92,7 +92,12 @@ namespace Notifications.BL.Repository
                 query = orderBy(query);
             }
 
-            return await query.AsNoTracking().Where(selector).ToListAsync();
+            if (selector != null)
+            {
+                return await query.AsNoTracking().Where(selector).ToListAsync();
+            }
+
+            return await query.AsNoTracking().ToListAsync();
         }
 
         public async Task<IList<T>> GetAll(Expression<Func<T, bool>> expression = null, Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null, List<string> includes = null)

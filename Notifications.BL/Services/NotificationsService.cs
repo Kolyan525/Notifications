@@ -1,7 +1,5 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Notifications.BL.IRepository;
 using Notifications.DAL.Models;
 using System;
@@ -20,7 +18,8 @@ namespace Notifications.BL.Services
         {
             this.unitOfWork = unitOfWork;
         }
-        public async Task<ActionResult> GetEventCategories(long id)
+
+        public async Task<IApiResponse> GetEventCategories(long id)
         {
             if (id > 0)
             {
@@ -37,14 +36,14 @@ namespace Notifications.BL.Services
                     categories.Add(item.Category.CategoryName);
                 }
 
-                return ApiResponse.Ok(categories).ToResult();
+                return ApiResponse.Ok(categories);
             }
 
-            return ApiResponse.BadRequest("Submitted data was invalid").ToResult();
+            return ApiResponse.BadRequest("Submitted data was invalid");
         }
 
         /*
-        public async Task<ActionResult<ICollection<Event>>> GetSubscribedEvents(string UserTelegramKey = null, string UserInstagramKey = null, string UserDiscordKey = null)
+        public async Task<IApiResponse<ICollection<Event>>> GetSubscribedEvents(string UserTelegramKey = null, string UserInstagramKey = null, string UserDiscordKey = null)
         {
             try
             {
@@ -97,27 +96,38 @@ namespace Notifications.BL.Services
         }
         */
 
-        public async Task<ActionResult<Event>> AddCategoryToEvent(long eventId, long categoryId)
+        public async Task<IApiResponse> AddCategoryToEvent(long eventId, long categoryId)
         {
-            if (eventId > 0 && categoryId > 0)
+            var cat = await unitOfWork.Categories.Get(x => x.CategoryId == categoryId);
+            if (cat == null) return ApiResponse.NotFound("Category was not found");
+
+            var @event = await unitOfWork.Events.Get(x => x.EventId == eventId, new List<string> { "EventCategories" });
+            if (@event == null) return ApiResponse.NotFound("Event was not found");
+
+            // Check if EC already exists within event
+            var ch = @event.EventCategories.FirstOrDefault(x => x.CategoryId == cat.CategoryId && x.Event.Title == @event.Title);
+            if (ch != null)
+                return ApiResponse.Conflict("This category is already assigned to the event");
+
+            @event.EventCategories.Add(new EventCategory { CategoryId = cat.CategoryId });
+            await unitOfWork.Save();
+
+            return ApiResponse.Ok(@event);
+        }
+
+        public async Task<IApiResponse> AddCategoriesToEvent(long eventId, List<string> categories)
+        {
+            if (eventId > 0 || categories != null)
             {
-                var cat = await unitOfWork.Categories.Get(x => x.CategoryId == categoryId);
-                if (cat == null) return ApiResponse.NotFound("Category was not found").ToResult();
+                var @event = await unitOfWork.Events.GetFirstOrDefault(
+                    e => e.EventId == eventId,
+                    include: e => e
+                        .Include(e => e.EventCategories)
+                            .ThenInclude(ec => ec.Category));
 
-                var @event = await unitOfWork.Events.Get(x => x.EventId == eventId, new List<string> { "EventCategories" });
-                if (@event == null) return ApiResponse.NotFound("Event was not found").ToResult();
-
-                // Check if EC already exists within event
-                var ch = @event.EventCategories.FirstOrDefault(x => x.CategoryId == cat.CategoryId && x.Event.Title == @event.Title);
-                if (ch != null)
-                    return ApiResponse.Conflict("This category is already assigned to the event").ToResult();
-
-                @event.EventCategories.Add(new EventCategory { CategoryId = cat.CategoryId });
-                await unitOfWork.Save();
-
-                return ApiResponse.Ok(@event).ToResult();
+                return ApiResponse.NotFound(@event);
             }
-            return ApiResponse.BadRequest("Submitted data was invalid").ToResult();
+            else return ApiResponse.BadRequest();
         }
 
         /// <summary>
@@ -126,13 +136,10 @@ namespace Notifications.BL.Services
         /// <param name="eventId">Event ID parameter, long</param>
         /// <param name="userId">Should be Telegram ID, string</param>
         /// <returns></returns>
-        public async Task<ActionResult> Subscribe(long eventId, string userId)
+        public async Task<IApiResponse> SubscribeToEvent(long eventId, string userId)
         {
-            if (!unitOfWork.Events.Exists(eventId)) return ApiResponse.NotFound("Event was not found").ToResult();
-            if (string.IsNullOrEmpty(userId)) return ApiResponse.BadRequest("User ID is empty").ToResult();    // Should probably add validation
-
             var exists = SubscriptionExists(eventId, userId);
-            if (exists.Result) return ApiResponse.Conflict("Event subscription already exists").ToResult();
+            if (exists.Result) return ApiResponse.Conflict("Event subscription already exists");
 
             var notificationTelegram = await unitOfWork.NotificationTypes.Get(x => x.NotificationName == "Telegram");
             
@@ -162,18 +169,35 @@ namespace Notifications.BL.Services
             sub.NotificationTypeSubscriptionId = ntsub.NotificaitonTypeSubscriptionId;
 
             await unitOfWork.Save();
-            return ApiResponse.Ok("Succesfully subscribed!").ToResult();
+            return ApiResponse.Ok("Succesfully subscribed!");
         }
 
-        public async Task<ActionResult> Unsubscribe(long eventId, string userId)
+        public async Task<IApiResponse> SubscribeToCategory(long categoryId, string userId)
         {
-            if (!unitOfWork.Events.Exists(eventId) && string.IsNullOrEmpty(userId)) { return ApiResponse.BadRequest("Submitted data was invalid").ToResult(); }
+            if (!unitOfWork.Categories.Exists(categoryId)) return ApiResponse.NotFound("Category was not found");
+            if (string.IsNullOrEmpty(userId)) return ApiResponse.BadRequest("User ID is empty");    // Should probably add validation
+
+            var notificationTelegram = await unitOfWork.NotificationTypes.Get(x => x.NotificationName == "Telegram");
+
+            var eventCategories = await unitOfWork.EventCategories.GetAll(ec => ec.CategoryId == categoryId);
+
+            foreach (var eventCategory in eventCategories)
+                await SubscribeToEvent(eventCategory.EventId, userId);
+
+            //await unitOfWork.Save();
+            
+            return ApiResponse.Ok("Succesfully subscribed to the category!");
+        }
+
+        public async Task<IApiResponse> UnsubscribeFromEvent(long eventId, string userId)
+        {
+            if (!unitOfWork.Events.Exists(eventId) && string.IsNullOrEmpty(userId)) { return ApiResponse.BadRequest("Submitted data was invalid"); }
 
             var ntsubs = await unitOfWork.NotificationTypeSubscriptions.GetAll(x => x.TelegramKey == userId);
             var subEvents = await unitOfWork.SubscriptionEvents.GetAll(x => x.EventId == eventId);
 
-            if (ntsubs == null) return ApiResponse.NotFound("No NTS was found").ToResult();
-            if (subEvents == null) return ApiResponse.NotFound("No SubscriptionEvents was found").ToResult();
+            if (ntsubs == null) return ApiResponse.NotFound("No NTS was found");
+            if (subEvents == null) return ApiResponse.NotFound("No SubscriptionEvents was found");
 
             foreach (var ntsub in ntsubs)
             {
@@ -191,22 +215,58 @@ namespace Notifications.BL.Services
 
                         await unitOfWork.Save();
 
-                        return ApiResponse.NoContent("Succesfuly unsubscribed").ToResult();
+                        return ApiResponse.NoContent("Successfully unsubscribed from event");
                     }
                 }
             }
 
             // if not above, then i haven't subbed or nts/subEvent doesn't exist
-            return ApiResponse.Conflict("Something went wrong. Probably, you aren't subscribed").ToResult();
+            return ApiResponse.Conflict("Something went wrong. Probably, you aren't subscribed");
         }
 
-        public async Task<ActionResult> ListOfSubscribedEvents(string userId)
+        // Seems to work
+        public async Task<IApiResponse> UnsubscribeFromCategory(long categoryId, string userId)
         {
-            if (string.IsNullOrEmpty(userId)) return ApiResponse.BadRequest("Submitted data was invalid. Please try again!").ToResult();
+            if (!unitOfWork.Events.Exists(categoryId) && string.IsNullOrEmpty(userId)) { return ApiResponse.BadRequest("Submitted data was invalid"); }
 
-            var subbed = await unitOfWork.NotificationTypeSubscriptions.GetAllHere(nts => nts.TelegramKey == userId,
-                include: nts => nts.
-                    Include(nts => nts.Subscription)
+            var ntsubs = await unitOfWork.NotificationTypeSubscriptions.GetAll(x => x.TelegramKey == userId);
+
+            if (ntsubs == null) return ApiResponse.NotFound("No NTS was found");
+
+            var eventsWithCategory = await unitOfWork.NotificationTypeSubscriptions.GetAllHere(nts => nts.TelegramKey == userId,
+                include: nts => nts
+                    .Include(nts => nts.Subscription)
+                    .ThenInclude(s => s.SubscriptionEvents)
+                    .ThenInclude(se => se.Event)
+                    .ThenInclude(e => e.EventCategories.Where(ec => ec.CategoryId == categoryId))
+            );
+
+            foreach (var nts in eventsWithCategory)
+            {
+                foreach (var sub in nts.Subscription.SubscriptionEvents)
+                {
+                    foreach (var ec in sub.Event.EventCategories)
+                    {
+                        //Console.WriteLine($"{ec.Event.Title}, {ec.CategoryId}");
+                        await UnsubscribeFromEvent(ec.EventId, userId);
+                    }
+                }
+            }
+            
+            return ApiResponse.NoContent("Successfully unsubscribed from category");
+
+            // if not above, then i haven't subbed or nts/subEvent doesn't exist
+            //return ApiResponse.Conflict("Something went wrong. Probably, you aren't subscribed");
+        }
+
+        public async Task<IApiResponse> ListOfSubscribedEvents(string userId)
+        {
+            if (string.IsNullOrEmpty(userId)) return ApiResponse.BadRequest("Submitted data was invalid. Please try again!");
+
+            var subbed = await unitOfWork.NotificationTypeSubscriptions.GetAllHere(
+                nts => nts.TelegramKey == userId,
+                include: nts => nts
+                    .Include(nts => nts.Subscription)
                     .ThenInclude(s => s.SubscriptionEvents)
                     .ThenInclude(se => se.Event));
 
@@ -220,19 +280,19 @@ namespace Notifications.BL.Services
                         vents.Add(se.Event);
                     }
                 }
-                return ApiResponse.Ok(vents).ToResult();
+                return ApiResponse.Ok(vents);
             }
 
-            return ApiResponse.NotFound($"No subscriptions was found with following ID: \"{userId}\"").ToResult();
+            return ApiResponse.NotFound($"No subscriptions was found with following ID: \"{userId}\"");
         }
 
 
         // How to validate seacrh from spaces, empty strings etc.?
         // Search using specific date format
-        public async Task<ActionResult> SearchEvents(string search)
+        public async Task<IApiResponse> SearchEvents(string search)
         {
             IList<Event> events = null;
-            if (string.IsNullOrEmpty(search) && !string.IsNullOrWhiteSpace(search)) return ApiResponse.BadRequest("Submitted data was invalid").ToResult();
+            if (string.IsNullOrEmpty(search) && !string.IsNullOrWhiteSpace(search)) return ApiResponse.BadRequest("Submitted data was invalid");
             
             var date = DateTime.TryParseExact(search, "d.M.yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime dateTime);
             if (!date)
@@ -250,7 +310,84 @@ namespace Notifications.BL.Services
                     x => x.StartAt.Date == DateTime.ParseExact(search, "d.M.yyyy", null));
             }
 
-            return ApiResponse.Ok(events).ToResult();
+            return ApiResponse.Ok(events);
+        }
+
+        public async Task<IApiResponse> FilterEvents(List<string> query)
+        {
+            if (query == null || query.Count == 0) return ApiResponse.BadRequest("The query was empty");
+
+            var categories = await unitOfWork.Categories.GetAll(x => query.Contains(x.CategoryName));
+
+            var events = await unitOfWork.Events.GetAllHere(
+                include: x => x
+                    .Include(ec => ec.EventCategories)
+                    .ThenInclude(ec => ec.Category));
+
+            List<Event> filtered = new List<Event>();
+
+            foreach (var @event in events)
+            {
+                if (EventWithCategories(@event, categories.ToList()))
+                {
+                    filtered.Add(@event);
+                }
+            }
+
+            return ApiResponse.Ok(filtered);
+        }
+
+        public bool EventWithCategories(Event @event, List<Category> categories)
+        {
+            int checks = 0;
+            foreach (var category in categories)
+            {
+                foreach (var ec in @event.EventCategories)
+                {
+                    if(ec.Category.CategoryName.Equals(category.CategoryName))
+                        checks++;
+                }
+            }
+            if (checks == categories.Count)
+                return true;
+
+            return false;
+        }
+
+        // Once a: week -+ 60m, day +- 5m, hour +- 2m.
+        // If event falls within the time frame then we should execute notification for all users just once (time frame can be true multiple times)
+        public bool IsDue(Event @event, TimeSpan timeSpan, TimeSpan interval)
+        {
+            DateTime date = DateTime.Now;
+
+            var margin = @event.StartAt.Subtract(date);
+            bool due = margin <= timeSpan.Add(interval) && margin >= timeSpan.Subtract(interval) ? true : false;
+            //DateTime combined = date.Add(timeSpan);
+            
+            Console.WriteLine("Now ({0}) + time ({1}) = {2}" +
+                "\nEvent date {3} ({4})", date, timeSpan, date.Add(timeSpan), @event.StartAt, due);
+
+            return due;
+        }
+
+        public async Task<IApiResponse> GetOrderedByDateEvents()
+        {
+            var events = await unitOfWork.Events.GetAll(orderBy: e => e.OrderBy(e => e.StartAt));
+
+            var result = events == null ? ApiResponse.NotFound() : ApiResponse.Ok(events);
+
+            return result;
+        }
+
+        public async Task CheckEvents(TimeSpan timeSpan, TimeSpan interval)
+        {
+            var events = await unitOfWork.Events.GetAll();
+
+            foreach (var @event in events)
+            {
+                if(IsDue(@event, timeSpan, interval))
+                    Console.WriteLine($"The event \"{@event.Title}\" will take place in {timeSpan} time span!");
+            }
         }
 
         public async Task<bool> SubscriptionExists(long eventId, string userId)
@@ -271,9 +408,8 @@ namespace Notifications.BL.Services
 }
 
 /* 
- * // TODO: Subscribe to Category,
+ * // TODO:
  * filter Events based on Categories
- * Search Events by Title, Description
  * Sort Events
  * 
     передбачається, що наприклад категорії подій будуть додаватися спершу, тоді вже самі події
@@ -281,8 +417,7 @@ namespace Notifications.BL.Services
 
 
 
-    Done: search event, 
-          subscribe to event, unsubscribe to event,
-          get list of subbed events
+    Done: search event, subscribe to event, unsubscribe to event, get list of subbed events, add category to event
+          subscribe to category,
  */
 

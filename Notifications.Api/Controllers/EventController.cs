@@ -9,6 +9,7 @@ using Notifications.DTO.DTOs;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Telegram.Bot.Types;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -176,20 +177,40 @@ namespace Notifications.Api.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<Event>> AddCategoryToEvent(long EventId, long CategoryId)
         {
+            if (EventId < 1 || CategoryId < 1) return ApiResponse.BadRequest("Submitted data was invalid").ToResult();
+
             try
             {
                 var @event = await notificationsService.AddCategoryToEvent(EventId, CategoryId);
 
-                if (@event.Value != null)
-                {
-                    unitOfWork.Events.Update(@event.Value); // tracking question?
-                    await unitOfWork.Save();
-                    var result = mapper.Map<EventDTO>(@event.Value);
-                    return Ok(result);
-                }
-                 
                 logger.LogInformation($"Successfully executed {nameof(AddCategoryToEvent)}");
-                return @event;
+                return @event.ToResult();
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, $"Something went wrong in the {nameof(AddCategoryToEvent)}");
+                return StatusCode(500, "Internal Server Error. Please try again later.");
+            }
+        }
+
+        [HttpPut("{EventId:long}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<Event>> AddCategoriesToEvent(long EventId, [FromBody] List<string> categories)
+        {
+            if (EventId < 1 || categories == null) return ApiResponse.BadRequest("Submitted data was invalid").ToResult();
+
+            try
+            {
+                var @event = await notificationsService.AddCategoriesToEvent(EventId, categories);
+
+                if (@event == null) return ApiResponse.NotFound().ToResult();
+
+                logger.LogInformation($"Successfully executed {nameof(AddCategoryToEvent)}");
+                return @event.ToResult();
             }
             catch (Exception ex)
             {
@@ -204,14 +225,17 @@ namespace Notifications.Api.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult> SubscribeToEvent(long EventId, string TelegramId)
+        public async Task<ActionResult> SubscribeToEvent(long eventId, string telegramId)
         {
+            if (!unitOfWork.Events.Exists(eventId)) return ApiResponse.NotFound("Event was not found").ToResult();
+            if (string.IsNullOrEmpty(telegramId)) return ApiResponse.BadRequest("User ID is empty").ToResult();
+
             try
             {
-                var sub = await notificationsService.Subscribe(EventId, TelegramId);
+                await notificationsService.SubscribeToEvent(eventId, telegramId);
 
                 logger.LogInformation($"Successfully executed {nameof(SubscribeToEvent)}");
-                return sub;
+                return ApiResponse.Ok("Successfully subscribed").ToResult();
             }
             catch (Exception ex)
             {
@@ -226,14 +250,16 @@ namespace Notifications.Api.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<Subscription>> UnsubscribeToEvent(long EventId, string TelegramId)
+        public async Task<ActionResult> UnsubscribeToEvent(long EventId, string TelegramId)
         {
+            if (!unitOfWork.Events.Exists(EventId) && string.IsNullOrEmpty(TelegramId)) return ApiResponse.BadRequest("Submitted data was invalid").ToResult();
+
             try
             {
-                var sub = await notificationsService.Unsubscribe(EventId, TelegramId);
+                await notificationsService.UnsubscribeFromEvent(EventId, TelegramId);
                 
                 logger.LogInformation($"Successfully executed {nameof(UnsubscribeToEvent)}");
-                return sub;
+                return ApiResponse.Ok("Successfully unsubscribed from event").ToResult();
             }
             catch (Exception ex)
             {
@@ -247,14 +273,16 @@ namespace Notifications.Api.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<Subscription>> ListOfSubscribedEvents(string TelegramId)
+        public async Task<IActionResult> ListOfSubscribedEvents(string TelegramId)
         {
+            if (string.IsNullOrEmpty(TelegramId)) return ApiResponse.BadRequest("Submitted data was invalid").ToResult();
+
             try
             {
                 var events = await notificationsService.ListOfSubscribedEvents(TelegramId);
 
                 logger.LogInformation($"Successfully executed {nameof(ListOfSubscribedEvents)}");
-                return events;
+                return ApiResponse.Ok(events).ToResult();
             }
             catch (Exception ex)
             {
@@ -268,18 +296,64 @@ namespace Notifications.Api.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult> Seacrh([FromQuery] string Search)
+        public async Task<ActionResult> Search([FromQuery] string search)
         {
+            if (string.IsNullOrEmpty(search) && !string.IsNullOrWhiteSpace(search)) return ApiResponse.BadRequest().ToResult();
+            
             try
             {
-                var events = await notificationsService.SearchEvents(Search);
+                var events = await notificationsService.SearchEvents(search);
 
-                logger.LogInformation($"Successfully executed {nameof(SubscribeToEvent)}");
-                return events;
+                logger.LogInformation($"Successfully executed {nameof(Search)}");
+                return ApiResponse.Ok(events).ToResult();
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, $"Something went wrong in the {nameof(SubscribeToEvent)}");
+                logger.LogError(ex, $"Something went wrong in the {nameof(Search)}");
+                return StatusCode(500, "Internal Server Error. Please try again later.");
+            }
+        }
+
+        [HttpGet("Filter")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult> FilterEvents([FromBody] List<string> filter)
+        {
+            if (filter == null) return ApiResponse.BadRequest().ToResult(); 
+
+            try
+            {
+                var events = await notificationsService.FilterEvents(filter);
+                if (events == null)
+                    return ApiResponse.NotFound().ToResult();
+
+                logger.LogInformation($"Successfully executed {nameof(FilterEvents)}");
+                return events.ToResult();
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, $"Something went wrong in the {nameof(FilterEvents)}");
+                return StatusCode(500, "Internal Server Error. Please try again later.");
+            }
+        }
+
+        [HttpGet("Order")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult> OrderEvents()
+        {
+            try
+            {
+                var response = await notificationsService.GetOrderedByDateEvents();
+
+                logger.LogInformation($"Successfully executed {nameof(OrderEvents)}");
+                return response.ToResult();
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, $"Something went wrong in the {nameof(OrderEvents)}");
                 return StatusCode(500, "Internal Server Error. Please try again later.");
             }
         }
