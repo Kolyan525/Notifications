@@ -297,10 +297,30 @@ namespace Notifications.BL.Services
             var date = DateTime.TryParseExact(search, "d.M.yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime dateTime);
             if (!date)
             {
-                events = await unitOfWork.Events.GetAll(
+                //events = await unitOfWork.Events.GetAll(
+                //        x => x.Title.Contains(search) ||
+                //        x.Description.Contains(search) ||
+                //        x.ShortDesc.Contains(search));
+
+                var IsCategory = await unitOfWork.Categories.Get(x => x.CategoryName == search);
+
+                if (IsCategory == null)
+                {
+                    events = await unitOfWork.Events.GetAll(
                         x => x.Title.Contains(search) ||
                         x.Description.Contains(search) ||
                         x.ShortDesc.Contains(search));
+                }
+                else
+                {
+                    events = await unitOfWork.Events.GetAllHere(
+                            x => x.Title.Contains(search) ||
+                            x.Description.Contains(search) ||
+                            x.ShortDesc.Contains(search),
+                        include: x => x.
+                            Include(e => e.EventCategories.Where(e => e.Category == IsCategory))
+                                .ThenInclude(ec => ec.Category));
+                }
                 //x.StartAt.Date == Convert.ToDateTime(search))
                 //x.StartAt.Date == DateTime.ParseExact(search, "d.M.yyyy", null))
             }

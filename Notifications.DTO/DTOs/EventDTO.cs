@@ -24,7 +24,12 @@ namespace Notifications.DTO.DTOs
         public string EventLink { get; set; }
 
         // Required
+        [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
         public DateTime StartAt { get; set; }
+        public double Price { get; set; }
+
+        [StringLength(maximumLength: 50, ErrorMessage = "Location is too long")]
+        public string Location { get; set; }
     }
     public class UpdateEventDTO : CreateEventDTO
     {
