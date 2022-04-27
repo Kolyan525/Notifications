@@ -23,6 +23,11 @@ namespace Notifications.BL.IRepository
                                           Expression<Func<T, bool>> predicate = null,
                                           Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null,
                                           Func<IQueryable<T>, IIncludableQueryable<T, object>> include = null);
+
+        public Task<IList<T>> GetAllHere(Expression<Func<T, bool>> selector = null,
+                                          Expression<Func<T, bool>> predicate = null,
+                                          Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null,
+                                          Func<IQueryable<T>, IIncludableQueryable<T, object>> include = null);
         bool Exists(object primaryKey);
         Task Insert(T entity);
         Task InsertRange(IEnumerable<T> entities);

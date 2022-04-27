@@ -19,7 +19,7 @@ namespace Notifications.DAL.Models
             {
                 entity.HasKey(x => x.SubscriptionEventId);
                 entity.Property(x => x.SubscriptionEventId).ValueGeneratedOnAdd();
-                entity.HasOne(x => x.Event).WithMany(x => x.SubscriptionEvents).HasForeignKey(x => x.EventId).OnDelete(DeleteBehavior.Cascade); //.IsRequired().OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(x => x.Event).WithMany(x => x.SubscriptionEvents).HasForeignKey(x => x.EventId).OnDelete(DeleteBehavior.SetNull); //.IsRequired().OnDelete(DeleteBehavior.Cascade);
                 entity.HasOne(x => x.Subscription).WithMany(x => x.SubscriptionEvents).OnDelete(DeleteBehavior.Cascade); //.IsRequired().OnDelete(DeleteBehavior.Cascade);
             });
 
@@ -27,7 +27,7 @@ namespace Notifications.DAL.Models
             {
                 entity.HasKey(x => x.NotificaitonTypeSubscriptionId);
                 entity.Property(x => x.NotificaitonTypeSubscriptionId).ValueGeneratedOnAdd();
-                entity.HasOne(x => x.Subscription).WithMany(x => x.NotificationTypeSubscriptions).OnDelete(DeleteBehavior.SetNull); //.IsRequired().OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(x => x.Subscription).WithMany(x => x.NotificationTypeSubscriptions).OnDelete(DeleteBehavior.Cascade); //.IsRequired().OnDelete(DeleteBehavior.Cascade);
                 entity.HasOne(x => x.NotificationType);
             });
 
@@ -35,8 +35,8 @@ namespace Notifications.DAL.Models
             {
                 entity.HasKey(x => x.EventCategoryId);
                 entity.Property(x => x.EventCategoryId).ValueGeneratedOnAdd();
-                entity.HasOne(x => x.Event).WithMany(x => x.EventCategories).HasForeignKey(x => x.EventId).OnDelete(DeleteBehavior.Cascade); //.IsRequired().OnDelete(DeleteBehavior.Cascade);
-                entity.HasOne(x => x.Category).WithMany(x => x.EventCategories).HasForeignKey(x => x.CategoryId).OnDelete(DeleteBehavior.Cascade); //.IsRequired().OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(x => x.Event).WithMany(x => x.EventCategories).HasForeignKey(x => x.EventId).OnDelete(DeleteBehavior.SetNull); //.IsRequired().OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(x => x.Category).WithMany(x => x.EventCategories).HasForeignKey(x => x.CategoryId).OnDelete(DeleteBehavior.SetNull); //.IsRequired().OnDelete(DeleteBehavior.Cascade);
             });
 
             // Event has ICollection<EventCategory> and ICollection<SubscriptionEvent>
@@ -60,7 +60,7 @@ namespace Notifications.DAL.Models
             {
                 entity.HasKey(x => x.SubscriptionId);
                 entity.Property(x => x.SubscriptionId).ValueGeneratedOnAdd();
-                entity.HasMany(x => x.NotificationTypeSubscriptions).WithOne(x => x.Subscription).HasForeignKey(x => x.SubscriptionId).OnDelete(DeleteBehavior.NoAction); //.IsRequired();//.OnDelete(DeleteBehavior.Cascade);
+                entity.HasMany(x => x.NotificationTypeSubscriptions).WithOne(x => x.Subscription).HasForeignKey(x => x.SubscriptionId).OnDelete(DeleteBehavior.Cascade); //.IsRequired();//.OnDelete(DeleteBehavior.Cascade);
                 entity.HasMany(x => x.SubscriptionEvents).WithOne(x => x.Subscription).HasForeignKey(x => x.SubscriptionId).OnDelete(DeleteBehavior.Cascade); //.IsRequired();//.OnDelete(DeleteBehavior.Cascade);
             });
 

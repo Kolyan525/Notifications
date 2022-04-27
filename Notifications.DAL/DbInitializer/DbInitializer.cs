@@ -84,7 +84,7 @@ namespace Notifications.DAL.DbInitializer
                 Description = "Dear students! for the next three weeks we need all together (students and teachers) to unite so as not to lose precious time of the second semester. Therefore an online learning will be established.",
                 ShortDesc = "Very short description for online learning",
                 EventLink = "https://docs.google.com/document/d/1X7SwM3uUyATgTzd6XIfqop1moM26FsjXfiMxfZqQCZA",
-                StartAt = DateTime.Today,
+                StartAt = new DateTime(2021, 11, 20, 9, 00, 00).ToUniversalTime(),
                 EventCategories = new List<EventCategory>
                 {
                     new EventCategory
@@ -108,7 +108,7 @@ namespace Notifications.DAL.DbInitializer
                 Description = "Congratulations, My name is Natalia, I deal with international rankings and NaU\"OA\" membership in them. This year, U - Multirank is conducting a survey among students majoring in Computer Science. Please contribute to the high place of NaU\"OA\" in this ranking by filling out a small survey. I pinned the letter below",
                 ShortDesc = "Very short description for international rating",
                 EventLink = "https://che-survey.de/uc/umr2022/",
-                StartAt = new DateTime(2021, 12, 20, 11, 24, 00),
+                StartAt = new DateTime(2021, 12, 20, 11, 24, 00).ToUniversalTime(),
                 EventCategories = new List<EventCategory>
                 {
                     new EventCategory
@@ -124,7 +124,7 @@ namespace Notifications.DAL.DbInitializer
                 Description = "Public discussion of the Regulations preject on mentoring in NaU\"OA\"",
                 ShortDesc = "We should discuss that, really!",
                 EventLink = "https://che-survey.de/uc/umr2022/",
-                StartAt = new DateTime(2022, 2, 10, 12, 00, 00),
+                StartAt = new DateTime(2022, 2, 10, 12, 00, 00).ToUniversalTime(),
                 EventCategories = new List<EventCategory>
                 {
                     new EventCategory
@@ -144,7 +144,7 @@ namespace Notifications.DAL.DbInitializer
                 Description = "Open University. Lecture by Rustem Ablyatif. Lessons for Ukraine through the prism of the history and modernity of Turkey Republic",
                 ShortDesc = "You should come and listen to our lection. It tackles some important information. Speaker is Rustem Ablyatif.",
                 EventLink = String.Empty,
-                StartAt = new DateTime(2022, 2, 10, 15, 30, 00),
+                StartAt = new DateTime(2022, 2, 10, 15, 30, 00).ToUniversalTime(),
                 EventCategories = new List<EventCategory>
                 {
                     new EventCategory
@@ -164,7 +164,7 @@ namespace Notifications.DAL.DbInitializer
                 Description = "You will find: - 40 minutes of practical information; -20 minutes Q &Asession: answers to all questions; -5 innovations in labor legislation that every educator should know: about wages during quarantine, unpaid leave, remote and homework; -real success cases of protection of labor rights by educators.",
                 ShortDesc = "Online master class \"TOP - 5 short stories in labor law for educators\"",
                 EventLink = "https://forms.gle/AUCJ8w4Tjeb74Lpw8",
-                StartAt = new DateTime(2022, 2, 10, 15, 30, 00),
+                StartAt = new DateTime(2022, 2, 10, 15, 30, 00).ToUniversalTime(),
                 EventCategories = new List<EventCategory>
                 {
                     new EventCategory

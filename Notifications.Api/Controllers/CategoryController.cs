@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Notifications.BL.IRepository;
+using Notifications.BL.Services;
 using Notifications.DAL.Models; 
 using Notifications.DTO.DTOs;
 using System;
@@ -22,12 +23,14 @@ namespace Notifications.Api.Controllers
         readonly IUnitOfWork unitOfWork;
         readonly ILogger<CategoryController> logger;
         readonly IMapper mapper;
+        readonly NotificationsService notificationsService;
 
-        public CategoryController(IUnitOfWork unitOfWork, ILogger<CategoryController> logger, IMapper mapper)
+        public CategoryController(IUnitOfWork unitOfWork, ILogger<CategoryController> logger, IMapper mapper, NotificationsService notificationsService)
         {
             this.unitOfWork = unitOfWork;
             this.logger = logger;
             this.mapper = mapper;
+            this.notificationsService = notificationsService;
         }
 
         // GET: api/<CategoriesController>
@@ -177,7 +180,9 @@ namespace Notifications.Api.Controllers
             {
                 var category = await unitOfWork.Categories.GetFirstOrDefault(
                     x => x.CategoryId == id, 
-                    include: x => x.Include(x => x.EventCategories).ThenInclude(x => x.Event) 
+                    include: x => x
+                        .Include(x => x.EventCategories)
+                        .ThenInclude(x => x.Event)
                 );
 
                 if (category == null)
@@ -185,17 +190,58 @@ namespace Notifications.Api.Controllers
                 
                 var events = new List<Event>();
                 foreach (var @event in category.EventCategories)
-                {
                     events.Add(@event.Event);
-                }
 
+                var results = mapper.Map<IList<CreateEventDTO>>(events);
                 //var result = mapper.Map<EventDTO>(events);
                 logger.LogInformation($"Successfully executed {nameof(GetCategoryEvents)}");
-                return Ok(events);
+                return Ok(results);
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, $"Something went wrong in the {nameof(GetCategoryEvents)}");
+                return StatusCode(500, "Internal Server Error. Please try again later.");
+            }
+        }
+
+        [HttpPost("Subscribe/{id:long}/{userId}", Name = "Subscribe")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult> Subscribe(long id, string userId)
+        {
+            try
+            {
+                var result = await notificationsService.SubscribeToCategory(id, userId);
+                
+                logger.LogInformation($"Successfully executed {nameof(Subscribe)}");
+                return result.ToResult();
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, $"Something went wrong in the {nameof(Subscribe)}");
+                return StatusCode(500, "Internal Server Error. Please try again later.");
+            }
+        }
+        
+        [HttpGet("Unsubscribe/{id:long}/{userId}", Name = "Unsubscribe")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult> Unsubscribe(long id, string userId)
+        {
+            try
+            {
+                var result = await notificationsService.UnsubscribeFromCategory(id, userId);
+                
+                logger.LogInformation($"Successfully executed {nameof(Unsubscribe)}");
+                return result.ToResult();
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, $"Something went wrong in the {nameof(Unsubscribe)}");
                 return StatusCode(500, "Internal Server Error. Please try again later.");
             }
         }
