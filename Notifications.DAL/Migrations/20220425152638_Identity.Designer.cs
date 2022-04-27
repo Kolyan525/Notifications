@@ -12,8 +12,8 @@ using Notifications.DAL.Models;
 namespace Notifications.DAL.Migrations
 {
     [DbContext(typeof(NotificationsContext))]
-    [Migration("20220421195639_DateFormat")]
-    partial class DateFormat
+    [Migration("20220425152638_Identity")]
+    partial class Identity
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -257,6 +257,12 @@ namespace Notifications.DAL.Migrations
 
                     b.Property<string>("EventLink")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Location")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<double>("Price")
+                        .HasColumnType("float");
 
                     b.Property<string>("ShortDesc")
                         .HasColumnType("nvarchar(max)");

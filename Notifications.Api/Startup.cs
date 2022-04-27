@@ -119,6 +119,7 @@ namespace Notifications.Api
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+
                 //app.UseSwagger();
                 //app.UseSwagger(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "NotificationsDAL v1"));
                 //app.UseSwagger();
@@ -136,6 +137,8 @@ namespace Notifications.Api
             app.UseAuthorization();
 
             app.UseHangfireDashboard("/dashboard");
+
+            app.UseCors(opt => opt.WithOrigins("http://localhost:3000").AllowAnyHeader().AllowAnyMethod());
 
             app.UseEndpoints(endpoints =>
             {
