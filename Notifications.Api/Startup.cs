@@ -143,7 +143,7 @@ namespace Notifications.Api
 
             app.UseHangfireDashboard("/dashboard");
 
-            
+            app.UseCors(opt => opt.WithOrigins("http://localhost:3000").AllowAnyHeader().AllowAnyMethod());
 
             app.UseEndpoints(endpoints =>
             {
