@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.OpenApi.Models;
 using Notifications.BL.IRepository;
 using Notifications.BL.Repository;
 using Notifications.BL.Services;
@@ -10,8 +9,6 @@ using Notifications.DAL.Models;
 using Notifications.DTO.Configurations;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Hangfire;
-using System.Linq;
-using System.Collections.Generic;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Hosting;
 using Microsoft.AspNetCore.Hosting;
@@ -31,7 +28,10 @@ namespace Notifications.Api
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers()
-                .AddNewtonsoftJson(op => op.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
+                .AddNewtonsoftJson(op => {
+                    op.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+                    op.SerializerSettings.DateTimeZoneHandling = Newtonsoft.Json.DateTimeZoneHandling.Utc;
+                });
 
             string connection = Configuration.GetConnectionString("DefaultConnection");
             services.AddDbContext<NotificationsContext>(options =>
@@ -75,7 +75,12 @@ namespace Notifications.Api
             services.AddTransient<NotificationsService>();
             services.AddTransient<DbInitializer>();
             services.AddScoped<IAuthManager, AuthManager>();
-            
+
+            //services.AddControllersWithViews().AddJsonOptions(options =>
+            //{
+            //    options.JsonSerializerOptions.Converters.Add(new DateTimeConverter());
+            //});
+
             //services.AddSwaggerGen(c =>
             //{
             //    c.SwaggerDoc("v1", new OpenApiInfo { Title = "NotificationsApi", Version = "v1" });
@@ -105,7 +110,7 @@ namespace Notifications.Api
             //                  Scheme = "oauth2",
             //                  Name = "Bearer",
             //                  In = ParameterLocation.Header,
-                    
+
             //              },
             //              new List<string>()
             //          }

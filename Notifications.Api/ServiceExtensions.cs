@@ -5,7 +5,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Notifications.DAL.Models;
 using System;
+using System.Diagnostics;
 using System.Text;
+using System.Text.Json;
 
 namespace Notifications.Api
 {
