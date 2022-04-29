@@ -8,7 +8,7 @@ namespace Notifications.DTO.DTOs
     public class CreateEventDTO
     {
         [Required]
-        [StringLength(maximumLength: 20, ErrorMessage = "Event title is too long")]
+        [StringLength(maximumLength: 40, ErrorMessage = "Event title is too long")]
         public string Title { get; set; }
 
         [Required]
@@ -44,11 +44,5 @@ namespace Notifications.DTO.DTOs
         // These should refer to DTO as well
         public ICollection<EventCategory> EventCategories { get; set; }
         public ICollection<SubscriptionEvent> SubscriptionEvents { get; set; }
-
-        public string Start
-        {
-            get { return StartAt.ToLocalTime().ToString(); }
-            set { StartAt = Convert.ToDateTime(value); }
-        }
     }
 }
