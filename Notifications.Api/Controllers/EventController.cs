@@ -65,8 +65,11 @@ namespace Notifications.Api.Controllers
         {
             try
             {
-                var @event = await unitOfWork.Events.Get(x => x.EventId == id, new List<string> { "EventCategories", "SubscriptionEvents" });
-                var result = mapper.Map<EventDTO>(@event);
+                var @event = await unitOfWork.Events.GetAllHere(x => x.EventId == id,
+                    include: x => x
+                        .Include(x => x.EventCategories)
+                            .ThenInclude(ec => ec.Category));
+                var result = mapper.Map<IList<EventDTO>>(@event);
                 logger.LogInformation($"Successfully executed {nameof(GetEvent)}");
                 return Ok(result);
             }
@@ -110,6 +113,8 @@ namespace Notifications.Api.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+
+        // TODO: check the data in the event, cause i'm updating by id, not checking if data itself match
         public async Task<IActionResult> UpdateEvent(long EventId, UpdateEventDTO eventDTO)
         {
             if (!ModelState.IsValid || EventId < 1)
@@ -198,7 +203,7 @@ namespace Notifications.Api.Controllers
             }
         }
 
-        [HttpPut("AddCategoryToEvent/{EventId:long}")]
+        [HttpPut("AddCategories/{EventId:long}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
