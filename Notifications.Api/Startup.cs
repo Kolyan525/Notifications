@@ -64,7 +64,7 @@ namespace Notifications.Api
             services.AddCors(o =>
             {
                 o.AddPolicy("AllowAll", builder =>
-                    builder.AllowAnyOrigin()
+                    builder.WithOrigins("http://localhost:3000")
                     .AllowAnyMethod()
                     .AllowAnyHeader());
             });
