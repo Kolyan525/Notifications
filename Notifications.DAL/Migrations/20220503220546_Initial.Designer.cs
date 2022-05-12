@@ -12,8 +12,8 @@ using Notifications.DAL.Models;
 namespace Notifications.DAL.Migrations
 {
     [DbContext(typeof(NotificationsContext))]
-    [Migration("20220125104322_UpdatedSubscriptionModelAndContext")]
-    partial class UpdatedSubscriptionModelAndContext
+    [Migration("20220503220546_Initial")]
+    partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -385,6 +385,50 @@ namespace Notifications.DAL.Migrations
                     b.ToTable("SubscriptionEvents");
                 });
 
+            modelBuilder.Entity("Notifications.DAL.Models.Telegram.EventActionActive", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<string>("EventOption")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("telegramEvent");
+                });
+
+            modelBuilder.Entity("Notifications.DAL.Models.Telegram.TelegramUser", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"), 1L, 1);
+
+                    b.Property<long>("ChatId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("FirstName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LastName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Username")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Users");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -457,7 +501,7 @@ namespace Notifications.DAL.Migrations
 
             modelBuilder.Entity("Notifications.DAL.Models.NotificationTypeSubscription", b =>
                 {
-                    b.HasOne("Notifications.DAL.Models.NotificationType", "NotificationTypes")
+                    b.HasOne("Notifications.DAL.Models.NotificationType", "NotificationType")
                         .WithMany()
                         .HasForeignKey("NotificationTypeId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -469,7 +513,7 @@ namespace Notifications.DAL.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("NotificationTypes");
+                    b.Navigation("NotificationType");
 
                     b.Navigation("Subscription");
                 });

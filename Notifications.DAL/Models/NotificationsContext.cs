@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Notifications.DAL.Models.Telegram;
 
 namespace Notifications.DAL.Models
 {
@@ -78,5 +79,7 @@ namespace Notifications.DAL.Models
         public DbSet<Category> Categories { get; set; }
         public DbSet<Subscription> Subscriptions { get; set; }
         public DbSet<SubscriptionEvent> SubscriptionEvents { get; set; }
+        public DbSet<TelegramUser> Users { get; set; }
+        public DbSet<EventActionActive> telegramEvent { get; set; }
     }
 }

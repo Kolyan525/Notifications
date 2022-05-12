@@ -15,6 +15,9 @@ using System.Collections.Generic;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Hosting;
 using Microsoft.AspNetCore.Hosting;
+using Notifications.BL.Services.Telegram;
+using Notifications.BL.Commands;
+using System;
 
 namespace Notifications.Api
 {
@@ -48,15 +51,27 @@ namespace Notifications.Api
                 options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
 
             })
-                .AddCookie(options =>
-                {
-                    options.LoginPath = "/api/account/google-login";
-                })
-                .AddGoogle(options =>
-                {
-                    options.ClientId = "629075882388-da8gmv28t2tfe4pegh4mt47lpt0r91md.apps.googleusercontent.com";
-                    options.ClientSecret = "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";
-                });
+            .AddCookie(options =>
+            {
+                options.LoginPath = "/api/account/google-login";
+            })
+            .AddGoogle(options =>
+            {
+                options.ClientId = "629075882388-da8gmv28t2tfe4pegh4mt47lpt0r91md.apps.googleusercontent.com";
+                options.ClientSecret = "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";
+            });
+
+            services.AddSingleton<TelegramBot>();
+            services.AddScoped<ICommandExecutor, CommandExecutor>();
+            services.AddScoped<IUserService, UserService>();
+            services.AddScoped<BaseCommand, StartCommand>();
+            services.AddScoped<BaseCommand, BL.Commands.Event>();
+            services.AddScoped<BaseCommand, GetEvent>();
+            services.AddScoped<BaseCommand, Help>();
+            services.AddScoped<BaseCommand, GetEvents>();
+            services.AddScoped<BaseCommand, GetSubscriptionEvents>();
+            services.AddScoped<BaseCommand, GetSubscription>();
+            services.AddScoped<BaseCommand, GetUnsubscribe>();
 
             services.ConfigureIdentity();
             //services.ConfigureJWT(Configuration);
@@ -114,7 +129,7 @@ namespace Notifications.Api
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IServiceProvider serviceProvider)
         {
             if (env.IsDevelopment())
             {
@@ -129,7 +144,7 @@ namespace Notifications.Api
             }
 
             //app.UseHttpsRedirection();
-
+            serviceProvider.GetRequiredService<TelegramBot>().GetBot().Wait();
             app.UseRouting();
 
             app.UseAuthentication();
