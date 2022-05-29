@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Notifications.DAL.Models;
 
@@ -11,9 +12,10 @@ using Notifications.DAL.Models;
 namespace Notifications.DAL.Migrations
 {
     [DbContext(typeof(NotificationsContext))]
-    partial class NotificationsContextModelSnapshot : ModelSnapshot
+    [Migration("20220529195417_Added Refresh tokens table")]
+    partial class AddedRefreshtokenstable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -361,7 +363,7 @@ namespace Notifications.DAL.Migrations
                     b.Property<DateTime>("ExpiryDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<bool>("IsRevoked")
+                    b.Property<bool>("IsRevorked")
                         .HasColumnType("bit");
 
                     b.Property<bool>("IsUsed")

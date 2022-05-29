@@ -31,7 +31,7 @@ namespace Notifications.DAL.DbInitializer
             await SeedCategories();
             await SeedEvents();
             await SeedNotificationTypes();
-            await SeedUsersAndRoles();
+            await SeedUsersAndRoles(services);
 
             logger.LogInformation("Finished seeding the database.");
             await context.SaveChangesAsync();
@@ -257,18 +257,31 @@ namespace Notifications.DAL.DbInitializer
             await context.SaveChangesAsync();
         }
 
-        public async Task SeedUsersAndRoles()
+        public async Task SeedUsersAndRoles(IServiceProvider serviceProvider)
         {
+            var RoleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+            var UserManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            IdentityResult roleResult;
             string[] roles = new string[] { "Admin", "Manager" };
 
-            foreach (string role in roles)
-            {
-                var roleStore = new RoleStore<IdentityRole>(context);
+            //foreach (string role in roles)
+            //{
+            //    var roleStore = new RoleStore<IdentityRole>(context);
 
-                if (!context.Roles.Any(r => r.Name == role))
+            //    if (!context.Roles.Any(r => r.Name == role))
+            //    {
+            //        logger.LogInformation("Starting to seed Roles");
+            //        await roleStore.CreateAsync(new IdentityRole(role));
+            //    }
+            //}
+
+            foreach (var roleName in roles)
+            {
+                var roleExist = await RoleManager.RoleExistsAsync(roleName);
+                if (!roleExist)
                 {
-                    logger.LogInformation("Starting to seed Roles");
-                    await roleStore.CreateAsync(new IdentityRole(role));
+                    //create the roles and seed them to the database: Question 1
+                    roleResult = await RoleManager.CreateAsync(new IdentityRole(roleName));
                 }
             }
 
@@ -276,7 +289,6 @@ namespace Notifications.DAL.DbInitializer
 
             ApplicationUser admin = new ApplicationUser
             {
-                UserName = "Kolyan525",
                 FirstName = "Kolya",
                 LastName = "Kalina",
                 Email = "mykola.kalinichenko@oa.edu.ua",
@@ -285,25 +297,41 @@ namespace Notifications.DAL.DbInitializer
 
             ApplicationUser manager = new ApplicationUser
             {
-                UserName = "Denys",
                 FirstName = "Denys",
                 LastName = "Vozniuk",
                 Email = "denys.vozniuk@oa.edu.ua",
                 EmailConfirmed = true
             };
+            
+            ApplicationUser admin2 = new ApplicationUser
+            {
+                FirstName = "Sasha",
+                LastName = "Kravec",
+                Email = "oleksandra.kravets@oa.edu.ua",
+                EmailConfirmed = true
+            };
+
+            admin.UserName = admin.Email;
+            admin2.UserName = admin2.Email;
+            manager.UserName = manager.Email;
 
             var adminEmailExists = userManager.FindByEmailAsync(admin.Email).Result == null;
             var adminUsernameExists = userManager.FindByNameAsync(admin.UserName).Result == null;
+            var admin2UsernameExists = userManager.FindByNameAsync(admin2.UserName).Result == null;
 
-            if (adminEmailExists && adminUsernameExists)
+            if (adminEmailExists && adminUsernameExists && admin2UsernameExists)
             {
                 logger.LogInformation("Starting to seed Admin");
                 // https://stackoverflow.com/questions/50785009/how-to-seed-an-admin-user-in-ef-core-2-1-0
 
                 IdentityResult adminResult = userManager.CreateAsync(admin, "Kolk@1337").Result;
+                IdentityResult adminResult2 = userManager.CreateAsync(admin2, "Sash@1234").Result;
 
-                if (adminResult.Succeeded)
+                if (adminResult.Succeeded && adminResult2.Succeeded)
+                {
                     userManager.AddToRoleAsync(admin, "Admin").Wait();
+                    userManager.AddToRoleAsync(admin2, "Admin").Wait();
+                }
                 else
                     logger.LogInformation("Admin seeding failed!");
             }

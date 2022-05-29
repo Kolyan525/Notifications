@@ -16,6 +16,7 @@ namespace Notifications.BL.Repository
         IGenericRepository<Subscription> subscriptions;
         IGenericRepository<SubscriptionEvent> subscriptionEvents;
         IGenericRepository<ApplicationUser> users;
+        IGenericRepository<RefreshToken> refreshTokens;
         public UnitOfWork(NotificationsContext context)
         {
             this.context = context;
@@ -35,6 +36,8 @@ namespace Notifications.BL.Repository
         public IGenericRepository<SubscriptionEvent> SubscriptionEvents => subscriptionEvents ??= new GenericRepository<SubscriptionEvent>(context);
 
         public IGenericRepository<ApplicationUser> Users => users ??= new GenericRepository<ApplicationUser>(context);
+        
+        public IGenericRepository<RefreshToken> RefreshTokens => refreshTokens ??= new GenericRepository<RefreshToken>(context);
 
         public void Dispose()
         {

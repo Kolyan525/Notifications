@@ -37,6 +37,11 @@ namespace Notifications.DTO.DTOs
         public ICollection<SubscriptionEvent> SubscriptionEvents { get; set; }
     }
 
+    public class EventWithCategoriesDTO : UpdateEventDTO
+    {
+        public List<long> CategoryIds { get; set; }
+    }
+
     public class EventDTO : CreateEventDTO
     {
         public long EventId { get; set; }

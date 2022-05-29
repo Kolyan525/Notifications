@@ -6,7 +6,7 @@ namespace Notifications.DTO.DTOs
     public class LoginUserDTO
     {
         [Required]
-        [DataType(DataType.EmailAddress)]
+        [EmailAddress]
         public string Email { get; set; }
 
         [Required]
@@ -18,5 +18,13 @@ namespace Notifications.DTO.DTOs
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public ICollection<string> Roles { get; set; }
+
+        public string Username
+        {
+            get
+            {
+                return FirstName + LastName;
+            }
+        }
     }
 }

@@ -11,6 +11,10 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Telegram.Bot.Types;
+using System.Linq;
+using System.Collections;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -18,6 +22,7 @@ namespace Notifications.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class EventController : ControllerBase
     {
         readonly IUnitOfWork unitOfWork;
@@ -41,11 +46,11 @@ namespace Notifications.Api.Controllers
             try
             {
                 // TODO: check size 1, page 10 content in events variable
-                //var events = await unitOfWork.Events.GetAll(requestParams);
-                var events = await unitOfWork.Events.GetAllHere(
-                    include: x => x
-                        .Include(x => x.EventCategories)
-                        .ThenInclude(ec => ec.Category));
+                var events = await unitOfWork.Events.GetAll(requestParams);
+                //var events = await unitOfWork.Events.GetAllHere(
+                //    include: x => x
+                //        .Include(x => x.EventCategories)
+                //        .ThenInclude(ec => ec.Category));
                 var results = mapper.Map<IList<EventDTO>>(events);
                 logger.LogInformation($"Successfully executed {nameof(GetEvents)}");
                 return Ok(results);
@@ -179,6 +184,7 @@ namespace Notifications.Api.Controllers
             }
         }
 
+        // TODO: 9.5.22
         [HttpPut("{EventId:long}/{CategoryId:long}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -194,6 +200,7 @@ namespace Notifications.Api.Controllers
                 var @event = await notificationsService.AddCategoryToEvent(EventId, CategoryId);
 
                 logger.LogInformation($"Successfully executed {nameof(AddCategoryToEvent)}");
+
                 return @event.ToResult();
             }
             catch (Exception ex)
@@ -209,7 +216,7 @@ namespace Notifications.Api.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<Event>> AddCategoriesToEvent(long EventId, [FromBody] List<string> categories)
+        public async Task<ActionResult<Event>> AddCategoriesToEvent(long EventId, [FromBody] List<long> categories)
         {
             if (EventId < 1 || categories == null) return ApiResponse.BadRequest("Submitted data was invalid").ToResult();
 
@@ -260,7 +267,7 @@ namespace Notifications.Api.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult> UnsubscribeToEvent(long EventId, string TelegramId)
+        public async Task<ActionResult> UnsubscribeFromEvent(long EventId, string TelegramId)
         {
             if (!unitOfWork.Events.Exists(EventId) && string.IsNullOrEmpty(TelegramId)) return ApiResponse.BadRequest("Submitted data was invalid").ToResult();
 
@@ -268,12 +275,12 @@ namespace Notifications.Api.Controllers
             {
                 await notificationsService.UnsubscribeFromEvent(EventId, TelegramId);
                 
-                logger.LogInformation($"Successfully executed {nameof(UnsubscribeToEvent)}");
+                logger.LogInformation($"Successfully executed {nameof(UnsubscribeFromEvent)}");
                 return ApiResponse.Ok("Successfully unsubscribed from event").ToResult();
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, $"Something went wrong in the {nameof(UnsubscribeToEvent)}");
+                logger.LogError(ex, $"Something went wrong in the {nameof(UnsubscribeFromEvent)}");
                 return StatusCode(500, "Internal Server Error. Please try again later.");
             }
         }
@@ -330,7 +337,7 @@ namespace Notifications.Api.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult> FilterEvents([FromBody] List<string> filter)
         {
-            if (filter == null) return ApiResponse.BadRequest().ToResult(); 
+            if (filter == null) return ApiResponse.BadRequest().ToResult();
 
             try
             {
@@ -364,6 +371,62 @@ namespace Notifications.Api.Controllers
             catch (Exception ex)
             {
                 logger.LogError(ex, $"Something went wrong in the {nameof(OrderEvents)}");
+                return StatusCode(500, "Internal Server Error. Please try again later.");
+            }
+        }
+
+        [HttpPost("CreateWithCategories")]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> CreateEventWithCategories([FromBody] EventWithCategoriesDTO eventDTO) // TODO: DTO
+        {
+            if (!ModelState.IsValid)
+            {
+                logger.LogError($"Invalid POST attempt in {nameof(CreateEventWithCategories)}");
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                var categories = await unitOfWork.Categories
+                               .GetAll(c => eventDTO.CategoryIds.Contains(c.CategoryId));
+
+                eventDTO.EventCategories = new List<EventCategory>();
+
+                foreach (var item in categories)
+                {
+                    eventDTO.EventCategories.Add(new EventCategory
+                    {
+                        CategoryId = item.CategoryId
+                    });
+                }
+
+                //EventCategories = new List<EventCategory>
+                //{
+                //    new EventCategory
+                //    {
+                //        Category = categoryUniversal
+                //    },
+                //    new EventCategory
+                //    {
+                //        Category = categoryLecture
+                //    },
+                //    new EventCategory
+                //    {
+                //        Category = categoryMasterClass
+                //    }
+                //}
+
+                var @event = mapper.Map<Event>(eventDTO);
+                await unitOfWork.Events.Insert(@event);
+                await unitOfWork.Save();
+
+                return CreatedAtRoute(nameof(GetEvent), new { id = @event.EventId }, @event);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, $"Something went wrong in the {nameof(CreateEventWithCategories)}");
                 return StatusCode(500, "Internal Server Error. Please try again later.");
             }
         }
