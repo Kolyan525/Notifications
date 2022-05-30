@@ -12,6 +12,7 @@ namespace Notifications.DTO.Configurations
             CreateMap<Category, CreateCategoryDTO>().ReverseMap();
             CreateMap<Event, EventDTO>().ReverseMap();
             CreateMap<Event, CreateEventDTO>().ReverseMap();
+            CreateMap<Event, EventWithCategoriesDTO>().ReverseMap();
             CreateMap<NotificationType, NotificationTypeDTO>().ReverseMap();
             CreateMap<NotificationType, CreateNotificationTypeDTO>().ReverseMap();
             CreateMap<ApplicationUser, UserDTO>().ReverseMap();

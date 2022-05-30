@@ -14,6 +14,7 @@ namespace Notifications.BL.IRepository
         IGenericRepository<Subscription> Subscriptions { get; }
         IGenericRepository<SubscriptionEvent> SubscriptionEvents { get; }
         IGenericRepository<ApplicationUser> Users { get; }
+        IGenericRepository<RefreshToken> RefreshTokens { get; }
         Task Save();
     }
 }

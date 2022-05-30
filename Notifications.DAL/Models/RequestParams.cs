@@ -12,7 +12,7 @@ namespace Notifications.DAL.Models
         public int PageNumber { get; set; } = 1;
         int pageSize = 10;
 
-        public int PageSize 
+        public int PageSize
         {
             get
             {

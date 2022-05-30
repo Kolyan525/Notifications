@@ -48,18 +48,18 @@ namespace Notifications.Api
                 options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
 
             })
-                .AddCookie(options =>
-                {
-                    options.LoginPath = "/api/account/google-login";
-                })
-                .AddGoogle(options =>
-                {
-                    options.ClientId = "629075882388-da8gmv28t2tfe4pegh4mt47lpt0r91md.apps.googleusercontent.com";
-                    options.ClientSecret = "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";
-                });
+            .AddCookie(options =>
+            {
+                options.LoginPath = "/api/account/google-login";
+            })
+            .AddGoogle(options =>
+            {
+                options.ClientId = "629075882388da8gmv28t2tfe4pegh4mt47lpt0r91md.apps.googleusercontent.com";
+                options.ClientSecret = "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";
+            });
 
             services.ConfigureIdentity();
-            //services.ConfigureJWT(Configuration);
+            services.ConfigureJWT(Configuration);
 
             services.AddCors(o =>
             {

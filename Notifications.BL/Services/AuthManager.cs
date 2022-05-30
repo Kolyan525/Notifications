@@ -6,7 +6,6 @@ using Notifications.DTO.DTOs;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,7 +16,7 @@ namespace Notifications.BL.Services
     {
         readonly UserManager<ApplicationUser> userManager;
         readonly IConfiguration Configuration;
-        private ApplicationUser applicationUser;
+        ApplicationUser applicationUser;
         public AuthManager(UserManager<ApplicationUser> userManager, IConfiguration Configuration)
         {
             this.userManager = userManager;
@@ -35,7 +34,7 @@ namespace Notifications.BL.Services
         private JwtSecurityToken GenerateTokenOptions(SigningCredentials signingCredentials, List<Claim> claims)
         {
             var jwtSettings = Configuration.GetSection("Jwt");
-            var expiration = DateTime.Now.AddMinutes(Convert.ToDouble(jwtSettings.GetSection("Lifetime").Value));
+            var expiration = DateTime.UtcNow.AddMinutes(Convert.ToDouble(jwtSettings.GetSection("Lifetime").Value));
 
             var token = new JwtSecurityToken(
                 issuer: jwtSettings.GetSection("Issuer").Value,
@@ -51,7 +50,10 @@ namespace Notifications.BL.Services
         {
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Name, applicationUser.UserName)
+                new Claim(ClaimTypes.Name, applicationUser.UserName),
+                new Claim(ClaimTypes.Email, applicationUser.Email),
+                new Claim(JwtRegisteredClaimNames.Sub, applicationUser.Email),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             };
 
             var roles = await userManager.GetRolesAsync(applicationUser);
@@ -69,7 +71,7 @@ namespace Notifications.BL.Services
             var key = Environment.GetEnvironmentVariable("KEY");
             var secret = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
 
-            return new SigningCredentials(secret, SecurityAlgorithms.HmacSha256);
+            return new SigningCredentials(secret, SecurityAlgorithms.HmacSha256Signature);
         }
 
         public async Task<bool> ValidateUser(LoginUserDTO userDTO)

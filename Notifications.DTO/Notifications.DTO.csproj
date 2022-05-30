@@ -23,4 +23,8 @@
     <ProjectReference Include="..\Notifications.DAL\Notifications.DAL.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Responses\" />
+  </ItemGroup>
+
 </Project>

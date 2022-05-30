@@ -96,6 +96,7 @@ namespace Notifications.BL.Services
         }
         */
 
+        // Seems to work 9.5.22
         public async Task<IApiResponse> AddCategoryToEvent(long eventId, long categoryId)
         {
             var cat = await unitOfWork.Categories.Get(x => x.CategoryId == categoryId);
@@ -110,12 +111,14 @@ namespace Notifications.BL.Services
                 return ApiResponse.Conflict("This category is already assigned to the event");
 
             @event.EventCategories.Add(new EventCategory { CategoryId = cat.CategoryId });
+
+            unitOfWork.Events.Update(@event);
             await unitOfWork.Save();
 
             return ApiResponse.Ok(@event);
         }
 
-        public async Task<IApiResponse> AddCategoriesToEvent(long eventId, List<string> categories)
+        public async Task<IApiResponse> AddCategoriesToEvent(long eventId, List<long> categories)
         {
             if (eventId > 0 || categories != null)
             {
@@ -125,7 +128,12 @@ namespace Notifications.BL.Services
                         .Include(e => e.EventCategories)
                             .ThenInclude(ec => ec.Category));
 
-                return ApiResponse.NotFound(@event);
+                foreach (var item in categories)
+                {
+                    await AddCategoryToEvent(@event.EventId, item);
+                }
+
+                return ApiResponse.Ok(@event);
             }
             else return ApiResponse.BadRequest();
         }
