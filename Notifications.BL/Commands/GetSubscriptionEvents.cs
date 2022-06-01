@@ -3,14 +3,16 @@ using System.Linq;
 using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Types;
-using Telegram.Bot.Types.Enums;
-using Telegram.Bot.Types.ReplyMarkups;
-using Notifications.DAL.Models.Telegram;
+//using Telegram.Bot.Types.Enums;
+//using Telegram.Bot.Types.ReplyMarkups;
+//using Notifications.DAL.Models.Telegram;
 using Notifications.BL.Services.Telegram;
 using Notifications.BL.IRepository;
 using Notifications.DAL.Models;
 using Notifications.BL.Services;
 using Microsoft.EntityFrameworkCore;
+using Telegram.Bot.Types.ReplyMarkups;
+using Telegram.Bot.Types.Enums;
 
 namespace Notifications.BL.Commands
 {
@@ -19,7 +21,6 @@ namespace Notifications.BL.Commands
         private readonly TelegramBotClient _botClient;
         private readonly IUserService _userService;
         private readonly NotificationsContext _context;
-        private static List<SubscriptionEvent> SubscriptionEvents;
         readonly IUnitOfWork unitOfWork;
         readonly NotificationsService notificationsService;
 
@@ -37,14 +38,12 @@ namespace Notifications.BL.Commands
         {
             var user = await _userService.GetOrCreate(update);
 
-            string allSubEvents = null;
             var id = user.ChatId;
             if (!_context.SubscriptionEvents.Any())
             {
                 await _botClient.SendTextMessageAsync(id, "У вас не має подій на які ви підписані!");
+                return;
             }
-            //var sList = await unitOfWork.SubscriptionEvents.GetAll();
-            //var sList = await notificationsService.ListOfSubscribedEvents(id.ToString());
             var sList = await unitOfWork.NotificationTypeSubscriptions.GetAllHere(
                 nts => nts.TelegramKey == id.ToString(),
                 include: nts => nts
@@ -63,11 +62,86 @@ namespace Notifications.BL.Commands
                     }
                 }
             }
-
-            foreach (var Ev in vents)  
-                allSubEvents += (Ev.Title + "\n");
-
-            await _botClient.SendTextMessageAsync(id, allSubEvents);
+            InlineKeyboardMarkup inlineKeyboardDetail = new(new[]
+                {
+                    new []
+                    {
+                        InlineKeyboardButton.WithCallbackData(text: "Детальніше", callbackData: "Detail")
+                    }
+                });
+            InlineKeyboardMarkup buttons = new(new[]
+            {
+                    new InlineKeyboardButton[]
+                    {
+                        InlineKeyboardButton.WithCallbackData(text: "Детальніше", callbackData: "Detail")
+                    },
+                    new InlineKeyboardButton[]
+                    {
+                        InlineKeyboardButton.WithCallbackData(text: "Завантажити ще", callbackData: "NextSubEvents")
+                    }
+                });
+            int i = 0;
+            if (update.Type == UpdateType.Message)
+            {
+                foreach (var Ev in vents)
+                {
+                    if (i == 1 && Ev != vents.Last())
+                    {
+                        await _botClient.SendTextMessageAsync(id, $"<u><b>{Ev.Title}</b></u>\n{Ev.ShortDesc}.\n",
+                        replyMarkup: buttons, parseMode: Telegram.Bot.Types.Enums.ParseMode.Html);
+                        return;
+                    }
+                    await _botClient.SendTextMessageAsync(id, $"<u><b>{Ev.Title}</b></u>\n{Ev.ShortDesc}.\n",
+                        replyMarkup: inlineKeyboardDetail, parseMode: Telegram.Bot.Types.Enums.ParseMode.Html);
+                    i++;
+                }
+            }
+            else if (update.Type == UpdateType.CallbackQuery)
+            {
+                string text = "";
+                foreach (var ch in update.CallbackQuery.Message.Text)
+                {
+                    if (ch == '\n')
+                    {
+                        bool chek = vents.FirstOrDefault(x => x.Title == text).Title == text;
+                        if (chek == true)
+                            break;
+                    }
+                    text += ch;
+                }
+                var lastEvent = vents.FirstOrDefault(e => e.Title == text);
+                List<DAL.Models.Event> NewEventList = new List<DAL.Models.Event>();
+                int k = 0;
+                foreach (var ev in vents)
+                {
+                    if (k > 0)
+                    {
+                        NewEventList.Add(ev);
+                    }
+                    if (ev == lastEvent)
+                        k++;
+                }
+                if (NewEventList.Count == 0)
+                {
+                    return;
+                }
+                else
+                {
+                    foreach (var Ev in NewEventList)
+                    {
+                        if (i == 1 && Ev != NewEventList.Last())
+                        {
+                            await _botClient.SendTextMessageAsync(id, $"<u><b>{Ev.Title}</b></u>\n{Ev.ShortDesc}.\n",
+                            replyMarkup: buttons, parseMode: Telegram.Bot.Types.Enums.ParseMode.Html);
+                            return;
+                        }
+                        await _botClient.SendTextMessageAsync(id, $"<u><b>{Ev.Title}</b></u>\n{Ev.ShortDesc}.\n",
+                            replyMarkup: inlineKeyboardDetail, parseMode: Telegram.Bot.Types.Enums.ParseMode.Html);
+                        i++;
+                    }
+                }
+            }
+            return;
         }
     }
 }

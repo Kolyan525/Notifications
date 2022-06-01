@@ -72,6 +72,7 @@ namespace Notifications.Api
             services.AddScoped<BaseCommand, GetSubscriptionEvents>();
             services.AddScoped<BaseCommand, GetSubscription>();
             services.AddScoped<BaseCommand, GetUnsubscribe>();
+            services.AddScoped<BaseCommand, GetCategories>();
 
             services.ConfigureIdentity();
             //services.ConfigureJWT(Configuration);

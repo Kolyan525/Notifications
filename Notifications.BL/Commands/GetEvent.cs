@@ -39,6 +39,9 @@ namespace Notifications.BL.Commands
             var id = user.ChatId;
             EventActionActive TelActionEvent;
             var EventList = await unitOfWork.Events.GetAll();
+            string text = string.Empty;
+            string category = string.Empty;
+            
             if (EventList.Any())
             {
 
@@ -57,26 +60,46 @@ namespace Notifications.BL.Commands
                 }
             });
 
+                if(update.Type == UpdateType.CallbackQuery)
+                {
+                    foreach (var ch in update.CallbackQuery.Message.Text)
+                    {
+                        if (ch == '\n')
+                        {
+                            bool chek = EventList.FirstOrDefault(x => x.Title == text).Title == text;
+                            if (chek == true)
+                                break;
+                        }
+                        text += ch;
+                    }
+                }
+                else if(update.Type == UpdateType.Message)
+                {
+                    text = update.Message.Text;
+                }
+                else
+                {
+                    return;
+                }
+
                 foreach (var item in EventList)
                 {
-                    if (item.Title == update.Message.Text)
+                    if (item.Title == text)
                     {
-                        var response = item.Title + ".\n" + item.Description;
+                        var response = $"<u><b>{item.Title}</b></u>\n<b>Опис події:</b> {item.Description}.";
                         if (_context.SubscriptionEvents.Any())
                         {
                             var check = notificationsService.SubscriptionExists(item.EventId, id.ToString()).Result;
-                            //var list = await unitOfWork.SubscriptionEvents.GetAll();
-                            //bool check = checkFunction(list, item.EventId);
                             if (check == true)
                             {
-                                await _botClient.SendTextMessageAsync(id, response, ParseMode.Markdown, replyMarkup: inlineKeyboardUnsubscribe);
+                                await _botClient.SendTextMessageAsync(id, response, replyMarkup: inlineKeyboardUnsubscribe, parseMode: ParseMode.Html);
                                 TelActionEvent = _context.telegramEvent.SingleOrDefault(x => x == _context.telegramEvent.FirstOrDefault());
                                 _context.telegramEvent.Remove(TelActionEvent);
                                 await _context.SaveChangesAsync();
                                 return;
                             }
                         }
-                        await _botClient.SendTextMessageAsync(id, response, ParseMode.Markdown, replyMarkup: inlineKeyboardSubscription);
+                        await _botClient.SendTextMessageAsync(id, response, replyMarkup: inlineKeyboardSubscription, parseMode: ParseMode.Html);
                         TelActionEvent = _context.telegramEvent.SingleOrDefault(x => x == _context.telegramEvent.FirstOrDefault());
                         _context.telegramEvent.Remove(TelActionEvent);
                         await _context.SaveChangesAsync();
@@ -99,14 +122,5 @@ namespace Notifications.BL.Commands
             }
 
         }
-        //private static bool checkFunction(IList<SubscriptionEvent> list, long EventId)
-        //{
-        //    foreach (var i in list)
-        //    {
-        //        if (i.EventId == EventId)
-        //            return true;
-        //    }
-        //    return false;
-        //}
     }
 }

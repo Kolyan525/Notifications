@@ -35,17 +35,20 @@ namespace Notifications.BL.Services.Telegram
             {
                 switch (update.Message?.Text)
                 {
-                    case "help":
+                    case "Список команд":
                         await ExecuteCommand(CommandNames.Help, update);
                         return;
-                    case "Events":
+                    case "Події":
                         await ExecuteCommand(CommandNames.GetEvents, update);
                         return;
-                    case "SubEvents":
+                    case "Підписані події":
                         await ExecuteCommand(CommandNames.GetSubscriptionEvents, update);
                         return;
-                    case "Event":
+                    case "Подія":
                         await ExecuteCommand(CommandNames.Event, update);
+                        return;
+                    case "Категорії":
+                        await ExecuteCommand(CommandNames.GetCategories, update);
                         return;
                 }
             }
@@ -60,6 +63,31 @@ namespace Notifications.BL.Services.Telegram
                 if (update.CallbackQuery.Data.Contains("Unsubscribe"))
                 {
                     await ExecuteCommand(CommandNames.GetUnsubscribe, update);
+                    return;
+                }
+                if (update.CallbackQuery.Data.Contains("Detail"))
+                {
+                    await ExecuteCommand(CommandNames.GetEvent, update);
+                    return;
+                }
+                if (update.CallbackQuery.Data.Contains("NextEvents"))
+                {
+                    await ExecuteCommand(CommandNames.GetEvents, update);
+                    return;
+                }
+                if (update.CallbackQuery.Data.Contains("NextSubEvents"))
+                {
+                    await ExecuteCommand(CommandNames.GetSubscriptionEvents, update);
+                    return;
+                }
+                if (update.CallbackQuery.Data.Contains("NextCategoryEvents"))
+                {
+                    await ExecuteCommand(CommandNames.GetCategories, update);
+                    return;
+                }
+                if (update.CallbackQuery.Data.Contains("PreviousCategoryEvents"))
+                {
+                    await ExecuteCommand(CommandNames.GetCategories, update);
                     return;
                 }
             }
@@ -81,7 +109,8 @@ namespace Notifications.BL.Services.Telegram
             }
             else
             {
-                await _botClient.SendTextMessageAsync(update.Message.Chat.Id, "Не має такої команди!");
+                await _botClient.SendTextMessageAsync(update.Message.Chat.Id, "Не має такої команди!" +
+                    "\nЩоб дізнатися список команд введіть \"help\", або виберіть цю команду у меню");
                 return;
             }
         }

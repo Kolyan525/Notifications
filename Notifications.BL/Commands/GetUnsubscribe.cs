@@ -42,9 +42,6 @@ namespace Notifications.BL.Commands
             if (Events.Any())
             {
                 DAL.Models.Event ev = getEvent(Events, InlineKeyboardText);
-
-                //bool check = checkFunction(SubscriptionEvents, InlineKeyboardText);
-
                 var check = notificationsService.SubscriptionExists(ev.EventId, id.ToString()).Result;
                 if (check == true)
                 {
@@ -84,20 +81,11 @@ namespace Notifications.BL.Commands
             string text = null;
             foreach (char i in updateText)
             {
-                if (i == '.')
+                if (i == '\n')
                     return text;
                 text += i;
             }
             return text;
         }
-        //private static bool checkFunction(IList<SubscriptionEvent> list, string text)
-        //{
-        //    foreach (var l in list)
-        //    {
-        //        if (l.Event.Title == text)
-        //            return true;
-        //    }
-        //    return false;
-        //}
     }
 }

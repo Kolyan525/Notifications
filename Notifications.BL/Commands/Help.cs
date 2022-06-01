@@ -23,7 +23,10 @@ namespace Notifications.BL.Commands
         {
             var user = await _userService.GetOrCreate(update);
             var id = user.ChatId;
-            string Commands = "help - отримати список всіх команд.\nEvents - отримати список всіх подій.\nSubEvents - отримати списк всіх подій на які ви підписані.\nEvent - отримати інформацію про конкретну подію.";
+            string Commands = "help - отримати список всіх команд.\nEvents - отримати список всіх подій." +
+                "\nSubEvents - отримати списк всіх подій на які ви підписані." +
+                "\nEvent - отримати інформацію про конкретну подію." +
+                "\nCategories - отримати список всіх категорій і подій, які відносяться до них.";
             await _botClient.SendTextMessageAsync(id, Commands);
         }
     }

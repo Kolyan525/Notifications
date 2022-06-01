@@ -67,7 +67,7 @@ namespace Notifications.BL.Commands
             string text = null;
             foreach(char i in updateText)
             {
-                if (i == '.')
+                if (i == '\n')
                     return text;
                 text += i;
             }

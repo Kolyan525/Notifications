@@ -10,5 +10,6 @@
         public const string GetSubscriptionEvents = "get-sub-events";
         public const string GetSubscription = "get-subscription";
         public const string GetUnsubscribe = "get-unsubscribe";
+        public const string GetCategories = "get-categories";
     }
 }
