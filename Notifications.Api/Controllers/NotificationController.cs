@@ -66,6 +66,9 @@ namespace Notifications.Api.Controllers
         [HttpPost("recurring-notification")]
         public async Task<IActionResult> Notify()
         {
+            // Sheck all events, if one is due, pass it to the function and retrieve list of subbed users.
+            // Then send notification to the users
+            // Schedule
             //var now = notificationsService.IsDue(60);
 
             RecurringJob.AddOrUpdate<NotificationsService>(x => x.CheckEvents(new TimeSpan(0, 32, 0), new TimeSpan(0, 10, 0)), Cron.Minutely);

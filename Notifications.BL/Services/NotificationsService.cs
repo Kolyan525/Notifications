@@ -398,6 +398,25 @@ namespace Notifications.BL.Services
             return due;
         }
 
+        public async Task<IApiResponse<List<string>>> GetEventSubscribedUsersId(long eventId)
+        {
+            var subEvents = await unitOfWork.SubscriptionEvents.GetAllHere(x => x.Event.EventId == eventId, 
+                include: x => x.Include(se => se.Subscription)
+                               .ThenInclude(s => s.NotificationTypeSubscriptions));
+
+            var users = new List<string>();
+
+            foreach (var se in subEvents)
+            {
+                foreach (var nts in se.Subscription.NotificationTypeSubscriptions)
+                {
+                    users.Add(nts.TelegramKey);
+                }
+            }
+
+            return ApiResponse.Ok(users);
+        }
+
         public async Task<IApiResponse> GetOrderedByDateEvents()
         {
             var events = await unitOfWork.Events.GetAll(orderBy: e => e.OrderBy(e => e.StartAt));
@@ -413,9 +432,22 @@ namespace Notifications.BL.Services
 
             foreach (var @event in events)
             {
+                var users = await GetEventSubscribedUsersId(@event.EventId);
                 if(IsDue(@event, timeSpan, interval))
+                {
                     Console.WriteLine($"The event \"{@event.Title}\" will take place in {timeSpan} time span!");
+                    foreach (var user in users.Data)
+                    {
+                        await NotifyUser(@event, user);
+                    }
+                }
             }
+        }
+
+        public async Task NotifyUser(Event @event, string userName)
+        {
+            // Send message to user
+            Console.WriteLine($"{userName}, you have upcoming events - {@event.Title}|{@event.StartAt.ToUniversalTime}");
         }
 
         public async Task<bool> SubscriptionExists(long eventId, string userId)

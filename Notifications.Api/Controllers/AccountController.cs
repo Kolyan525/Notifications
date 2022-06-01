@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
@@ -24,12 +23,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
-/*
-  якщо гугл видасть інформацію, отже користувач є у гуглі, далі
-- подивитися, чи ця скринька співпадає з тією, яку ви визначили для адміна і чи вона у домені oa.edu.ua
-- подивитися, чи є такий користувач у вас в системі, якщо є генеруємо токени, якщо ні, створюємо для нього запис в бд і генеруємо токени
-- тоді, коли користувач буде відправляти запити, до кожного запиту в авторизаційні хедере (Bearer XXXXXX...) він буде додавати access token, коли термін дії токену закінчиться (в такому підході це зазвичай невелике число, хвилин 5) система автоматом перегенерує його (відправить refresh токен (який зберігається на юайці в локал стореджі) і отримає новий access токен)
- */
+
 
 namespace Notifications.Api.Controllers
 {
@@ -130,8 +124,31 @@ namespace Notifications.Api.Controllers
                 if (!await authManager.ValidateUser(userDTO))
                 {
                     return Unauthorized();
-
                 }
+                if (!userDTO.Email.EndsWith("oa.edu.ua"))
+                {
+                    return BadRequest("You must login with oa.edu.ua email");
+                }
+
+                //var props = new AuthenticationProperties { RedirectUri = Url.Action("GoogleResponse", "Account") };
+
+                //Challenge(props, GoogleDefaults.AuthenticationScheme);
+
+                //var result = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+                //var claims = result.Principal.Identities.FirstOrDefault()
+                //    .Claims.Select(claim => new
+                //    {
+                //        claim.Issuer,
+                //        claim.OriginalIssuer,
+                //        claim.Type,
+                //        claim.Value,
+                //    });
+
+                //if (claims == null)
+                //{
+                //    return BadRequest();
+                //}
 
                 var existingUser = await userManager.FindByEmailAsync(userDTO.Email);
 
@@ -168,7 +185,78 @@ namespace Notifications.Api.Controllers
                     claim.Value,
                 });
 
-            return Accepted(claims);
+            if (claims == null)
+                return BadRequest();
+
+            var identities = result.Principal.Identities;
+            string email = String.Empty;
+            foreach (var id in identities)
+            {
+                foreach (var item in id.Claims)
+                {
+                    if (item.Type == ClaimTypes.Email)
+                    {
+                        Console.WriteLine($"Found this claim: {item.Type}");
+                        email = item.Value;
+                    }
+                }
+            }
+
+            /*
+            - подивитися, чи ця скринька співпадає з тією, яку ви визначили для адміна і чи вона у домені oa.edu.ua
+            - подивитися, чи є такий користувач у вас в системі, якщо є генеруємо токени, якщо ні, створюємо для нього запис в бд і генеруємо токени
+            - тоді, коли користувач буде відправляти запити, до кожного запиту в авторизаційні хедере (Bearer XXXXXX...) він буде додавати access token, коли термін дії токену закінчиться (в такому підході це зазвичай невелике число, хвилин 5) система автоматом перегенерує його (відправить refresh токен (який зберігається на юайці в локал стореджі) і отримає новий access токен)
+            */
+
+            if (email == null)
+                return BadRequest();
+
+            logger.LogInformation($"Google login Attempt for {email}");
+            
+            if (!email.EndsWith("@oa.edu.ua"))
+                return BadRequest("Log in with OA domain!");
+
+            //if (email.Equals("mykola.kalinichenko@oa.edu.ua") || 
+            //    email.Equals("denys.vozniuk@oa.edu.ua") ||
+            //    email.Equals("oleksandra.kravets@oa.edu.ua"))
+            //{
+            //}
+
+            try
+            {
+                var existingUser = await userManager.FindByEmailAsync(email);
+            
+                if (existingUser == null)
+                {
+                    UserDTO userDTO = new UserDTO
+                    {
+                        Email = email,
+                    };
+
+                    var user = mapper.Map<ApplicationUser>(userDTO);
+                    user.UserName = userDTO.Email;
+                    var userResult = await userManager.CreateAsync(user);
+
+                    if (!result.Succeeded)
+                    {
+                        foreach (var error in userResult.Errors) // TODO: possibly sensitive error info
+                            ModelState.AddModelError(error.Code, error.Description);
+                        
+                        return BadRequest(ModelState);
+                    }
+                }
+
+                existingUser = await userManager.FindByEmailAsync(email);
+
+                var jwtToken = await GenerateJwtToken(existingUser);
+
+                return Accepted(jwtToken);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, $"Something Went Wrong in the {nameof(GoogleResponse)}");
+                return Problem($"Something Went Wrong in the {nameof(GoogleResponse)}", statusCode: 500);
+            }
         }
 
         [HttpPost("RefreshToken")]

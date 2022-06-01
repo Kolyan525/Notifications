@@ -82,5 +82,11 @@ namespace Notifications.BL.Services
                 await userManager.CheckPasswordAsync(applicationUser, userDTO.Password)
             );
         }
+        
+        public async Task<bool> ValidateUser(string email)
+        {
+            applicationUser = await userManager.FindByNameAsync(email);
+            return applicationUser != null;
+        }
     }
 }

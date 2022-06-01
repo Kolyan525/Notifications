@@ -10,6 +10,7 @@ namespace Notifications.BL.Services
     public interface IAuthManager
     {
         Task<bool> ValidateUser(LoginUserDTO userDTO);
+        Task<bool> ValidateUser(string userEmail);
         Task<string> CreateToken();
     }
 }

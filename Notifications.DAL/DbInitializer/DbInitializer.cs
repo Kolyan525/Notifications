@@ -260,20 +260,8 @@ namespace Notifications.DAL.DbInitializer
         public async Task SeedUsersAndRoles(IServiceProvider serviceProvider)
         {
             var RoleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-            var UserManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
             IdentityResult roleResult;
             string[] roles = new string[] { "Admin", "Manager" };
-
-            //foreach (string role in roles)
-            //{
-            //    var roleStore = new RoleStore<IdentityRole>(context);
-
-            //    if (!context.Roles.Any(r => r.Name == role))
-            //    {
-            //        logger.LogInformation("Starting to seed Roles");
-            //        await roleStore.CreateAsync(new IdentityRole(role));
-            //    }
-            //}
 
             foreach (var roleName in roles)
             {
@@ -281,76 +269,83 @@ namespace Notifications.DAL.DbInitializer
                 if (!roleExist)
                 {
                     //create the roles and seed them to the database: Question 1
+                    logger.LogInformation("Starting to seed roles");
                     roleResult = await RoleManager.CreateAsync(new IdentityRole(roleName));
                 }
             }
 
-            UserManager<ApplicationUser> userManager = services.GetService<UserManager<ApplicationUser>>();
+            string a1 = "denys.vozniuk@oa.edu.ua";
+            string a2 = "mykola.kalinichenko@oa.edu.ua";
+            string a3 = "oleksandra.kravets@oa.edu.ua";
 
-            ApplicationUser admin = new ApplicationUser
-            {
-                FirstName = "Kolya",
-                LastName = "Kalina",
-                Email = "mykola.kalinichenko@oa.edu.ua",
-                EmailConfirmed = true
-            };
+            await CreateUserIfNotExists(a1);
+            await CreateUserIfNotExists(a2);
+            await CreateUserIfNotExists(a3);
 
-            ApplicationUser manager = new ApplicationUser
-            {
-                FirstName = "Denys",
-                LastName = "Vozniuk",
-                Email = "denys.vozniuk@oa.edu.ua",
-                EmailConfirmed = true
-            };
+            //UserManager<ApplicationUser> userManager = services.GetService<UserManager<ApplicationUser>>();
+
+            //ApplicationUser admin = new ApplicationUser
+            //{
+            //    FirstName = "Kolya",
+            //    LastName = "Kalina",
+            //    Email = "mykola.kalinichenko@oa.edu.ua",
+            //    EmailConfirmed = true
+            //};
+
+            //ApplicationUser manager = new ApplicationUser
+            //{
+            //    FirstName = "Denys",
+            //    LastName = "Vozniuk",
+            //    Email = "denys.vozniuk@oa.edu.ua",
+            //    EmailConfirmed = true
+            //};
             
-            ApplicationUser admin2 = new ApplicationUser
-            {
-                FirstName = "Sasha",
-                LastName = "Kravec",
-                Email = "oleksandra.kravets@oa.edu.ua",
-                EmailConfirmed = true
-            };
+            //ApplicationUser admin2 = new ApplicationUser
+            //{
+            //    FirstName = "Sasha",
+            //    LastName = "Kravec",
+            //    Email = "oleksandra.kravets@oa.edu.ua",
+            //    EmailConfirmed = true
+            //};
 
-            admin.UserName = admin.Email;
-            admin2.UserName = admin2.Email;
-            manager.UserName = manager.Email;
+            //admin.UserName = admin.Email;
+            //admin2.UserName = admin2.Email;
+            //manager.UserName = manager.Email;
 
-            var adminEmailExists = userManager.FindByEmailAsync(admin.Email).Result == null;
-            var adminUsernameExists = userManager.FindByNameAsync(admin.UserName).Result == null;
-            var admin2UsernameExists = userManager.FindByNameAsync(admin2.UserName).Result == null;
+            //var adminEmailExists = userManager.FindByEmailAsync(admin.Email).Result == null;
+            //var admin2EmailExists = userManager.FindByNameAsync(admin2.Email).Result == null;
+            //var admin2UsernameExists = userManager.FindByNameAsync(admin2.Email).Result == null;
 
-            if (adminEmailExists && adminUsernameExists && admin2UsernameExists)
-            {
-                logger.LogInformation("Starting to seed Admin");
-                // https://stackoverflow.com/questions/50785009/how-to-seed-an-admin-user-in-ef-core-2-1-0
+            //logger.LogInformation("Starting to seed Admins");
+            //if (!adminEmailExists)
+            //{
+            //    IdentityResult adminResult = userManager.CreateAsync(admin, "Kolk@1337").Result;
+            //    IdentityResult adminResult2 = userManager.CreateAsync(admin2, "Sash@1234").Result;
 
-                IdentityResult adminResult = userManager.CreateAsync(admin, "Kolk@1337").Result;
-                IdentityResult adminResult2 = userManager.CreateAsync(admin2, "Sash@1234").Result;
+            //    if (adminResult.Succeeded && adminResult2.Succeeded)
+            //    {
+            //        userManager.AddToRoleAsync(admin, "Admin").Wait();
+            //        userManager.AddToRoleAsync(admin2, "Admin").Wait();
+            //    }
+            //    else
+            //        logger.LogInformation("Admin seeding failed!");
+            //}
 
-                if (adminResult.Succeeded && adminResult2.Succeeded)
-                {
-                    userManager.AddToRoleAsync(admin, "Admin").Wait();
-                    userManager.AddToRoleAsync(admin2, "Admin").Wait();
-                }
-                else
-                    logger.LogInformation("Admin seeding failed!");
-            }
+            //var managerEmailExists = userManager.FindByEmailAsync(manager.Email).Result == null;
+            //var managerUsernameExists = userManager.FindByNameAsync(manager.UserName).Result == null;
 
-            var managerEmailExists = userManager.FindByEmailAsync(manager.Email).Result == null;
-            var managerUsernameExists = userManager.FindByNameAsync(manager.UserName).Result == null;
+            //if (managerEmailExists && managerUsernameExists)
+            //{
+            //    logger.LogInformation("Starting to seed Manager");
+            //    // https://stackoverflow.com/questions/50785009/how-to-seed-an-admin-user-in-ef-core-2-1-0
 
-            if (managerEmailExists && managerUsernameExists)
-            {
-                logger.LogInformation("Starting to seed Manager");
-                // https://stackoverflow.com/questions/50785009/how-to-seed-an-admin-user-in-ef-core-2-1-0
+            //    IdentityResult managerResult = userManager.CreateAsync(manager, "Deny@1337").Result;
 
-                IdentityResult managerResult = userManager.CreateAsync(manager, "Deny@1337").Result;
-
-                if (managerResult.Succeeded)
-                    userManager.AddToRoleAsync(manager, "Manager").Wait();
-                else
-                    logger.LogInformation("Manager seeding failed!");
-            }
+            //    if (managerResult.Succeeded)
+            //        userManager.AddToRoleAsync(manager, "Manager").Wait();
+            //    else
+            //        logger.LogInformation("Manager seeding failed!");
+            //}
         }
 
         public async Task CreateEventIfNotExists(Event vent)
@@ -400,6 +395,32 @@ namespace Notifications.DAL.DbInitializer
                 };
                 await context.NotificationTypes.AddAsync(newNotificationType);
             }
+        }
+
+        public async Task CreateUserIfNotExists(string email)
+        {
+            UserManager<ApplicationUser> userManager = services.GetService<UserManager<ApplicationUser>>();
+
+            var userExists = await userManager.FindByEmailAsync(email) != null;
+
+            if (!userExists)
+            {
+                ApplicationUser user = new ApplicationUser
+                {
+                    Email = email,
+                    EmailConfirmed = true,
+                    UserName = email,
+                };
+
+                IdentityResult userResult = await userManager.CreateAsync(user);
+
+                if (userResult.Succeeded)
+                    logger.LogInformation($"User {user.Email} created");
+                else
+                    logger.LogInformation($"User {user.Email} seeding failed!");
+            }
+            else
+                logger.LogInformation($"User {email} already exists");
         }
     }
 }

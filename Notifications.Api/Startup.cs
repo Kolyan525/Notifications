@@ -54,8 +54,8 @@ namespace Notifications.Api
             })
             .AddGoogle(options =>
             {
-                options.ClientId = "629075882388da8gmv28t2tfe4pegh4mt47lpt0r91md.apps.googleusercontent.com";
-                options.ClientSecret = "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";
+                options.ClientId = "180776747370-sfh352om5183eksv1n1u0rjg5aum2vv3.apps.googleusercontent.com";
+                options.ClientSecret = "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";
             });
 
             services.ConfigureIdentity();

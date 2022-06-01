@@ -10,9 +10,6 @@ using Notifications.DTO.DTOs;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Telegram.Bot.Types;
-using System.Linq;
-using System.Collections;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 
@@ -22,7 +19,6 @@ namespace Notifications.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class EventController : ControllerBase
     {
         readonly IUnitOfWork unitOfWork;
@@ -90,6 +86,7 @@ namespace Notifications.Api.Controllers
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public async Task<IActionResult> CreateEvent([FromBody] CreateEventDTO eventDTO) // TODO: DTO
         {
             if (!ModelState.IsValid)
@@ -118,6 +115,7 @@ namespace Notifications.Api.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
 
         // TODO: check the data in the event, cause i'm updating by id, not checking if data itself match
         public async Task<IActionResult> UpdateEvent(long EventId, UpdateEventDTO eventDTO)
@@ -155,6 +153,7 @@ namespace Notifications.Api.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public async Task<IActionResult> DeleteEvent(long id)
         {
             if (id < 1)
@@ -206,6 +205,30 @@ namespace Notifications.Api.Controllers
             catch (Exception ex)
             {
                 logger.LogError(ex, $"Something went wrong in the {nameof(AddCategoryToEvent)}");
+                return StatusCode(500, "Internal Server Error. Please try again later.");
+            }
+        }
+        
+        [HttpGet("GetUsers/{EventId:long}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<Event>> GetSubbedUsers(long EventId)
+        {
+            if (EventId < 1) return ApiResponse.BadRequest("Submitted data was invalid").ToResult();
+
+            try
+            {
+                var users = await notificationsService.GetEventSubscribedUsersId(EventId);
+
+                logger.LogInformation($"Successfully executed {nameof(GetSubbedUsers)}");
+
+                return users.ToResult();
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, $"Something went wrong in the {nameof(GetSubbedUsers)}");
                 return StatusCode(500, "Internal Server Error. Please try again later.");
             }
         }
