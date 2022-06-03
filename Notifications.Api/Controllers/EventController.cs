@@ -342,7 +342,9 @@ namespace Notifications.Api.Controllers
             
             try
             {
-                var events = await notificationsService.SearchEvents(search);
+                var reslut = await notificationsService.SearchEvents(search);
+
+                var events = reslut.Data;
 
                 logger.LogInformation($"Successfully executed {nameof(Search)}");
                 return ApiResponse.Ok(events).ToResult();

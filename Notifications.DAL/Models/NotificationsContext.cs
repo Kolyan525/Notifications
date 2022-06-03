@@ -78,6 +78,8 @@ namespace Notifications.DAL.Models
         public DbSet<Category> Categories { get; set; }
         public DbSet<Subscription> Subscriptions { get; set; }
         public DbSet<SubscriptionEvent> SubscriptionEvents { get; set; }
+        public DbSet<TelegramUser> Users { get; set; }
+        public DbSet<EventActionActive> TelegramEvent { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }
     }
 }

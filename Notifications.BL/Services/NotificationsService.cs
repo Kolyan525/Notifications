@@ -297,10 +297,10 @@ namespace Notifications.BL.Services
 
         // How to validate seacrh from spaces, empty strings etc.?
         // Search using specific date format
-        public async Task<IApiResponse> SearchEvents(string search)
+        public async Task<IApiResponse<IList<Event>>> SearchEvents(string search)
         {
             IList<Event> events = null;
-            if (string.IsNullOrEmpty(search) && !string.IsNullOrWhiteSpace(search)) return ApiResponse.BadRequest("Submitted data was invalid");
+            if (string.IsNullOrEmpty(search) && !string.IsNullOrWhiteSpace(search)) return null;
             
             var date = DateTime.TryParseExact(search, "d.M.yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime dateTime);
             if (!date)
