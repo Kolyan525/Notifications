@@ -9,8 +9,6 @@ using Notifications.BL.Services.Telegram;
 using Notifications.DAL.Models;
 using Notifications.BL.IRepository;
 using Notifications.BL.Services;
-using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
 
 namespace Notifications.BL.Commands
 {

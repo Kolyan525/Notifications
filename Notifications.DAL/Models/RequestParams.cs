@@ -23,7 +23,5 @@ namespace Notifications.DAL.Models
                 pageSize = (value > maxPageSize) ? maxPageSize : value;
             }
         }
-
-        public string Title { get; set; } 
     }
 }

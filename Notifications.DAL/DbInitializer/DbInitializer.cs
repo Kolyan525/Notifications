@@ -16,7 +16,8 @@ namespace Notifications.DAL.DbInitializer
     {
         private readonly NotificationsContext context;
         private readonly IServiceProvider services;
-        private readonly ILogger<DbInitializer> logger;
+        pri
+            vate readonly ILogger<DbInitializer> logger;
         readonly IMapper mapper;
 
         public DbInitializer(NotificationsContext context, IServiceProvider services, ILogger<DbInitializer> logger, IMapper mapper)
