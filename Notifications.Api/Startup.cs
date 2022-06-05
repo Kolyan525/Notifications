@@ -12,6 +12,12 @@ using Hangfire;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Hosting;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.OpenApi.Models;
+using System.Linq;
+using System.Collections.Generic;
+using Notifications.BL.Commands;
+using Notifications.BL.Services.Telegram;
+using System;
 
 namespace Notifications.Api
 {
@@ -57,6 +63,19 @@ namespace Notifications.Api
                 options.ClientId = "180776747370-sfh352om5183eksv1n1u0rjg5aum2vv3.apps.googleusercontent.com";
                 options.ClientSecret = "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";
             });
+
+            services.AddSingleton<TelegramBot>();
+            services.AddScoped<ICommandExecutor, CommandExecutor>();
+            services.AddScoped<IUserService, UserService>();
+            services.AddScoped<BaseCommand, StartCommand>();
+            services.AddScoped<BaseCommand, BL.Commands.Event>();
+            services.AddScoped<BaseCommand, GetEvent>();
+            services.AddScoped<BaseCommand, Help>();
+            services.AddScoped<BaseCommand, GetEvents>();
+            services.AddScoped<BaseCommand, GetSubscriptionEvents>();
+            services.AddScoped<BaseCommand, GetSubscription>();
+            services.AddScoped<BaseCommand, GetUnsubscribe>();
+            services.AddScoped<BaseCommand, GetCategories>();
 
             services.ConfigureIdentity();
             services.ConfigureJWT(Configuration);
@@ -119,7 +138,7 @@ namespace Notifications.Api
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IServiceProvider serviceProvider)
         {
             if (env.IsDevelopment())
             {
@@ -135,7 +154,7 @@ namespace Notifications.Api
             }
 
             //app.UseHttpsRedirection();
-
+            serviceProvider.GetRequiredService<TelegramBot>().GetBot().Wait();
             app.UseRouting();
 
             app.UseAuthentication();

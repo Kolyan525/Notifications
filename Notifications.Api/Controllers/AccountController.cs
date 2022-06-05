@@ -445,6 +445,7 @@ namespace Notifications.Api.Controllers
             }
             catch (Exception ex)
             {
+                logger.LogInformation(ex, $"Something went wrong in the {nameof(VerifyAndGenerateToken)}");
                 return null;
             }
         }

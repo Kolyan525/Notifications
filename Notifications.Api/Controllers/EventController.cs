@@ -42,11 +42,11 @@ namespace Notifications.Api.Controllers
             try
             {
                 // TODO: check size 1, page 10 content in events variable
-                var events = await unitOfWork.Events.GetAll(requestParams);
-                //var events = await unitOfWork.Events.GetAllHere(
-                //    include: x => x
-                //        .Include(x => x.EventCategories)
-                //        .ThenInclude(ec => ec.Category));
+                // var events = await unitOfWork.Events.GetAll(requestParams);
+                var events = await unitOfWork.Events.GetAllHere(
+                    include: x => x
+                        .Include(x => x.EventCategories)
+                        .ThenInclude(ec => ec.Category));
                 var results = mapper.Map<IList<EventDTO>>(events);
                 logger.LogInformation($"Successfully executed {nameof(GetEvents)}");
                 return Ok(results);

@@ -5,6 +5,12 @@ using Notifications.BL.Services;
 using System;
 using System.Threading.Tasks;
 using Notifications.BL.IRepository;
+using Microsoft.EntityFrameworkCore;
+using Notifications.BL.Services.Telegram;
+using Notifications.BL;
+using Notifications.DAL.Models.Telegram;
+using Notifications.DAL.Models;
+using Telegram.Bot;
 
 namespace Notifications.Api.Controllers
 {
@@ -15,12 +21,18 @@ namespace Notifications.Api.Controllers
         readonly ILogger<NotificationController> logger;
         readonly NotificationsService notificationsService;
         readonly IUnitOfWork unitOfWork;
+        private readonly TelegramBotClient _botClient;
+        private readonly IUserService _userService;
+        private EventActionActive TelActionEvent;
 
-        public NotificationController(ILogger<NotificationController> logger, NotificationsService notificationsService, IUnitOfWork unitOfWork)
+        public NotificationController(ILogger<NotificationController> logger, NotificationsService notificationsService, IUnitOfWork unitOfWork, TelegramBotClient botClient, IUserService userService, EventActionActive telActionEvent)
         {
             this.logger = logger;
             this.notificationsService = notificationsService;
             this.unitOfWork = unitOfWork;
+            _botClient = botClient;
+            _userService = userService;
+            TelActionEvent = telActionEvent;
         }
 
         [HttpPost("fire-and-forget")]
@@ -70,6 +82,10 @@ namespace Notifications.Api.Controllers
             // Then send notification to the users
             // Schedule
             //var now = notificationsService.IsDue(60);
+
+            string message = "Введіть назву події, яку бажаєте переглянути серед списку наявних подій! Для того, щоб ознайомитися із списком зі всіма подіями виберіть в меню варіант 'Events'!";
+            
+            await _botClient.SendTextMessageAsync(355735430, message);
 
             RecurringJob.AddOrUpdate<NotificationsService>(x => x.CheckEvents(new TimeSpan(0, 32, 0), new TimeSpan(0, 10, 0)), Cron.Minutely);
 
