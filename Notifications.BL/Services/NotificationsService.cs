@@ -452,6 +452,11 @@ namespace Notifications.BL.Services
 
         public async Task<bool> SubscriptionExists(long eventId, string userId)
         {
+            if (eventId <= 0 && userId == String.Empty)
+            {
+                return false;
+            }
+
             var ntsubs = await unitOfWork.NotificationTypeSubscriptions.GetAll(x => x.TelegramKey == userId);
             var subscriptionEvents = await unitOfWork.SubscriptionEvents.GetAll(s => s.EventId == eventId);
 

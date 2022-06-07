@@ -66,8 +66,8 @@ namespace Notifications.BL.Commands
                     {
                         if (ch == '\n')
                         {
-                            bool chek = EventList.FirstOrDefault(x => x.Title == text).Title == text;
-                            if (chek == true)
+                            bool check = EventList.FirstOrDefault(x => x.Title == text).Title == text;
+                            if (check == true)
                                 break;
                         }
                         text += ch;
@@ -106,7 +106,7 @@ namespace Notifications.BL.Commands
                         return;
                     }
                 }
-                await _botClient.SendTextMessageAsync(id, "Не має такої події!");
+                await _botClient.SendTextMessageAsync(id, "Немає такої події!");
                 TelActionEvent = _context.TelegramEvent.SingleOrDefault(x => x == _context.TelegramEvent.FirstOrDefault());
                 _context.TelegramEvent.Remove(TelActionEvent);
                 await _context.SaveChangesAsync();

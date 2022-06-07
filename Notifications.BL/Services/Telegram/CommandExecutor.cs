@@ -109,8 +109,8 @@ namespace Notifications.BL.Services.Telegram
             }
             else
             {
-                await _botClient.SendTextMessageAsync(update.Message.Chat.Id, "Не має такої команди!" +
-                    "\nЩоб дізнатися список команд введіть \"help\", або виберіть цю команду у меню");
+                await _botClient.SendTextMessageAsync(update.Message.Chat.Id, "Немає такої команди!" +
+                    "\nЩоб дізнатися список команд введіть \"Список команд\", або виберіть цю команду у меню");
                 return;
             }
         }

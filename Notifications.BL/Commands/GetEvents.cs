@@ -1,12 +1,12 @@
-﻿using Notifications.BL.IRepository;
-using Notifications.BL.Services.Telegram;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Types;
-using Telegram.Bot.Types.Enums;
+using Notifications.BL.Services.Telegram;
+using Notifications.BL.IRepository;
+using System.Linq;
 using Telegram.Bot.Types.ReplyMarkups;
+using System.Collections.Generic;
+using Telegram.Bot.Types.Enums;
 
 namespace Notifications.BL.Commands
 {
@@ -61,7 +61,7 @@ namespace Notifications.BL.Commands
                             return;
                         }
                         await _botClient.SendTextMessageAsync(id, $"<u><b>{Ev.Title}</b></u>\n{Ev.ShortDesc}.\n",
-                            replyMarkup: inlineKeyboardDetail, parseMode: ParseMode.Html);
+                            replyMarkup: inlineKeyboardDetail, parseMode: Telegram.Bot.Types.Enums.ParseMode.Html);
                         i++;
                     }
                 }
@@ -72,8 +72,8 @@ namespace Notifications.BL.Commands
                     {
                         if (ch == '\n')
                         {
-                            bool chek = EventList.FirstOrDefault(x => x.Title == text).Title == text;
-                            if (chek == true)
+                            bool check = EventList.FirstOrDefault(x => x.Title == text).Title == text;
+                            if(check == true)
                                 break;
                         }
                         text += ch;
@@ -81,9 +81,9 @@ namespace Notifications.BL.Commands
                     var lastEvent = EventList.FirstOrDefault(e => e.Title == text);
                     List<DAL.Models.Event> NewEventList = new List<DAL.Models.Event>();
                     int k = 0;
-                    foreach (var e in EventList)
+                    foreach(var e in EventList)
                     {
-                        if (k > 0)
+                        if(k > 0)
                         {
                             NewEventList.Add(e);
                         }
@@ -101,11 +101,11 @@ namespace Notifications.BL.Commands
                             if (i == 1 && Ev != NewEventList.Last())
                             {
                                 await _botClient.SendTextMessageAsync(id, $"<u><b>{Ev.Title}</b></u>\n{Ev.ShortDesc}.\n",
-                                replyMarkup: buttons, parseMode: ParseMode.Html);
+                                replyMarkup: buttons, parseMode: Telegram.Bot.Types.Enums.ParseMode.Html);
                                 return;
                             }
                             await _botClient.SendTextMessageAsync(id, $"<u><b>{Ev.Title}</b></u>\n{Ev.ShortDesc}.\n",
-                                replyMarkup: inlineKeyboardDetail, parseMode: ParseMode.Html);
+                                replyMarkup: inlineKeyboardDetail, parseMode: Telegram.Bot.Types.Enums.ParseMode.Html);
                             i++;
                         }
                     }

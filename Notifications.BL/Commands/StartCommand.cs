@@ -33,7 +33,7 @@ namespace Notifications.BL.Commands
                 ResizeKeyboard = true
             };
 
-            await _botClient.SendTextMessageAsync(user.ChatId, "Вітаємо! Ви запустили нашого телеграм-бота! Для того, щоб переглянути список команд введіть 'help', або ж оберіть цей варіант у меню!",
+            await _botClient.SendTextMessageAsync(user.ChatId, "Вітаємо! Ви запустили нашого телеграм-бота! Для того, щоб переглянути список команд введіть 'help', або ж оберіть цей варіант у меню! ",
                 ParseMode.Markdown, replyMarkup: replyKeyboard);
 
         }
