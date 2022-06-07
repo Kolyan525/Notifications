@@ -78,10 +78,8 @@ namespace Notifications.Api.Controllers
             // Then send notification to the users
             // Schedule
             //var now = notificationsService.IsDue(60);
-
-            string message = "Lol bruh notification success!";
             
-            RecurringJob.AddOrUpdate<NotificationsService>(x => x.CheckEvents(new TimeSpan(0, 32, 0), new TimeSpan(0, 10, 0)), Cron.Minutely);
+            RecurringJob.AddOrUpdate<NotificationsService>(x => x.CheckEvents(new TimeSpan(0, 1, 0), new TimeSpan(0, 1, 0)), Cron.Minutely);
 
             return Ok();
         }

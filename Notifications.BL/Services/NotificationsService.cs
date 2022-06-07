@@ -389,12 +389,22 @@ namespace Notifications.BL.Services
 
         // Once a: week -+ 60m, day +- 5m, hour +- 2m.
         // If event falls within the time frame then we should execute notification for all users just once (time frame can be true multiple times)
+        /// <summary>
+        /// Check if the event is going to be held within following time span
+        /// </summary>
+        /// <param name="event">The Event model class</param>
+        /// <param name="timeSpan">The time, before which the user gets notified</param>
+        /// <param name="interval">The checking interval</param>
+        /// <returns></returns>
         public bool IsDue(Event @event, TimeSpan timeSpan, TimeSpan interval)
         {
             DateTime date = DateTime.Now;
 
-            var margin = @event.StartAt.Subtract(date);
-            bool due = margin <= timeSpan.Add(interval) && margin >= timeSpan.Subtract(interval) ? true : false;
+            // 32, 10 | example
+            // Event will be in 40 m | example
+            var timeBeforeEvent = @event.StartAt.Subtract(date);
+
+            bool due = timeBeforeEvent <= timeSpan.Add(interval) && timeBeforeEvent >= timeSpan.Subtract(interval) ? true : false;
             //DateTime combined = date.Add(timeSpan);
             
             Console.WriteLine("Now ({0}) + time ({1}) = {2}" +
@@ -438,14 +448,14 @@ namespace Notifications.BL.Services
             foreach (var @event in events)
             {
                 var users = await GetEventSubscribedUsersId(@event.EventId);
-                //if(IsDue(@event, timeSpan, interval))
-                //{
+                if(IsDue(@event, timeSpan, interval))
+                {
                     Console.WriteLine($"The event \"{@event.Title}\" will take place in {timeSpan} time span!");
                     foreach (var user in users.Data)
                     {
                         await NotifyUser(@event, user);
                     }
-                //}
+                }
             }
         }
 
@@ -455,7 +465,7 @@ namespace Notifications.BL.Services
             var message = $"<b>Скоро відбудеться подія на яку ви підписалися!</b>\n\n" +
                 $"<u><b>{@event.Title}</b></u>\n\n<b>Опис події:</b> {@event.Description}." +
                 $"\n\n<b>Початок: {@event.StartAt}</b>";
-            await botClient.SendTextMessageAsync(355735430, message, parseMode: ParseMode.Html);
+            await botClient.SendTextMessageAsync(userName, message, parseMode: ParseMode.Html);
             Console.WriteLine($"{userName}, has upcoming events - {@event.Title}|{@event.StartAt.ToUniversalTime()}");
         }
 
