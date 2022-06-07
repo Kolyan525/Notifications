@@ -48,7 +48,7 @@ namespace Notifications.BL.Commands
                 {
                     new []
                     {
-                        InlineKeyboardButton.WithCallbackData(text: "Настуні події", callbackData: "NextCategoryEvents")
+                        InlineKeyboardButton.WithCallbackData(text: "Наступні події", callbackData: "NextCategoryEvents")
                     }
                 });
                 InlineKeyboardMarkup inlineKeyboardPreviousEvents = new(new[]
@@ -63,7 +63,7 @@ namespace Notifications.BL.Commands
                     new InlineKeyboardButton[]
                     {
                         InlineKeyboardButton.WithCallbackData(text: "Попередні події", callbackData: "PreviousCategoryEvents"),
-                        InlineKeyboardButton.WithCallbackData(text: "Настуні події", callbackData: "NextCategoryEvents")
+                        InlineKeyboardButton.WithCallbackData(text: "Наступні події", callbackData: "NextCategoryEvents")
                     }
                 });
                 if (update.Type == UpdateType.Message)

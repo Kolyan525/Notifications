@@ -21,18 +21,14 @@ namespace Notifications.Api.Controllers
         readonly ILogger<NotificationController> logger;
         readonly NotificationsService notificationsService;
         readonly IUnitOfWork unitOfWork;
-        private readonly TelegramBotClient _botClient;
-        private readonly IUserService _userService;
-        private EventActionActive TelActionEvent;
+        private readonly IUserService userService;
 
-        public NotificationController(ILogger<NotificationController> logger, NotificationsService notificationsService, IUnitOfWork unitOfWork, TelegramBotClient botClient, IUserService userService, EventActionActive telActionEvent)
+        public NotificationController(ILogger<NotificationController> logger, NotificationsService notificationsService, IUnitOfWork unitOfWork, IUserService userService)
         {
             this.logger = logger;
             this.notificationsService = notificationsService;
             this.unitOfWork = unitOfWork;
-            _botClient = botClient;
-            _userService = userService;
-            TelActionEvent = telActionEvent;
+            this.userService = userService;
         }
 
         [HttpPost("fire-and-forget")]
@@ -83,10 +79,8 @@ namespace Notifications.Api.Controllers
             // Schedule
             //var now = notificationsService.IsDue(60);
 
-            string message = "Введіть назву події, яку бажаєте переглянути серед списку наявних подій! Для того, щоб ознайомитися із списком зі всіма подіями виберіть в меню варіант 'Events'!";
+            string message = "Lol bruh notification success!";
             
-            await _botClient.SendTextMessageAsync(355735430, message);
-
             RecurringJob.AddOrUpdate<NotificationsService>(x => x.CheckEvents(new TimeSpan(0, 32, 0), new TimeSpan(0, 10, 0)), Cron.Minutely);
 
             return Ok();

@@ -1,22 +1,27 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Notifications.BL.IRepository;
+using Notifications.BL.Services.Telegram;
 using Notifications.DAL.Models;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
+using Telegram.Bot;
+using Telegram.Bot.Types.Enums;
 
 namespace Notifications.BL.Services
 {
     public class NotificationsService
     {
         readonly IUnitOfWork unitOfWork;
+        private readonly TelegramBotClient botClient;
 
-        public NotificationsService(IUnitOfWork unitOfWork)
+        public NotificationsService(IUnitOfWork unitOfWork, TelegramBot bot)
         {
             this.unitOfWork = unitOfWork;
+            this.botClient = bot.GetBot().Result;
         }
 
         public async Task<IApiResponse> GetEventCategories(long id)
@@ -433,21 +438,25 @@ namespace Notifications.BL.Services
             foreach (var @event in events)
             {
                 var users = await GetEventSubscribedUsersId(@event.EventId);
-                if(IsDue(@event, timeSpan, interval))
-                {
+                //if(IsDue(@event, timeSpan, interval))
+                //{
                     Console.WriteLine($"The event \"{@event.Title}\" will take place in {timeSpan} time span!");
                     foreach (var user in users.Data)
                     {
                         await NotifyUser(@event, user);
                     }
-                }
+                //}
             }
         }
 
         public async Task NotifyUser(Event @event, string userName)
         {
             // Send message to user
-            Console.WriteLine($"{userName}, you have upcoming events - {@event.Title}|{@event.StartAt.ToUniversalTime}");
+            var message = $"<b>Скоро відбудеться подія на яку ви підписалися!</b>\n\n" +
+                $"<u><b>{@event.Title}</b></u>\n\n<b>Опис події:</b> {@event.Description}." +
+                $"\n\n<b>Початок: {@event.StartAt}</b>";
+            await botClient.SendTextMessageAsync(355735430, message, parseMode: ParseMode.Html);
+            Console.WriteLine($"{userName}, has upcoming events - {@event.Title}|{@event.StartAt.ToUniversalTime()}");
         }
 
         public async Task<bool> SubscriptionExists(long eventId, string userId)

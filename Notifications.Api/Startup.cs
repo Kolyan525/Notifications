@@ -91,7 +91,7 @@ namespace Notifications.Api
             services.AddAutoMapper(typeof(MapperInitializer));
 
             services.AddTransient<IUnitOfWork, UnitOfWork>();
-            services.AddTransient<NotificationsService>();
+            services.AddScoped<NotificationsService>();
             services.AddTransient<DbInitializer>();
             services.AddScoped<IAuthManager, AuthManager>();
 

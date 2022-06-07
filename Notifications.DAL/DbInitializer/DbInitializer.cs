@@ -75,7 +75,6 @@ namespace Notifications.DAL.DbInitializer
             {
                 CategoryName = "Всі факультети"
             });
-            
             await CreateCategoryIfNotExists(new Category
             {
                 CategoryName = "Економіка"
