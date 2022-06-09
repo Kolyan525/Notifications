@@ -67,6 +67,7 @@ namespace Notifications.Api
             services.AddSingleton<TelegramBot>();
             services.AddScoped<ICommandExecutor, CommandExecutor>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IPaginationService, PaginationService>();
             services.AddScoped<BaseCommand, StartCommand>();
             services.AddScoped<BaseCommand, BL.Commands.Event>();
             services.AddScoped<BaseCommand, GetEvent>();
@@ -76,9 +77,13 @@ namespace Notifications.Api
             services.AddScoped<BaseCommand, GetSubscription>();
             services.AddScoped<BaseCommand, GetUnsubscribe>();
             services.AddScoped<BaseCommand, GetCategories>();
+            services.AddScoped<BaseCommand, GetSubscriptionCategory>();
+            services.AddScoped<BaseCommand, GetUnsubscribeCategory>();
 
             services.ConfigureIdentity();
             services.ConfigureJWT(Configuration);
+
+            services.AddMemoryCache();
 
             services.AddCors(o =>
             {

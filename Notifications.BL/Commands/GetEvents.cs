@@ -31,24 +31,8 @@ namespace Notifications.BL.Commands
             var EventList = await unitOfWork.Events.GetAll();
             if (EventList.Any())
             {
-                InlineKeyboardMarkup inlineKeyboardDetail = new(new[]
-                {
-                    new []
-                    {
-                        InlineKeyboardButton.WithCallbackData(text: "Детальніше", callbackData: "Detail")
-                    }
-                });
-                InlineKeyboardMarkup buttons = new(new[]
-                {
-                    new InlineKeyboardButton[]
-                    {
-                        InlineKeyboardButton.WithCallbackData(text: "Детальніше", callbackData: "Detail")
-                    },
-                    new InlineKeyboardButton[]
-                    {
-                        InlineKeyboardButton.WithCallbackData(text: "Завантажити ще", callbackData: "NextEvents")
-                    }
-                });
+                var inlineKeyboardDetail = TelegramButtons.GetEvents.Detail;
+                var buttons = TelegramButtons.GetEvents.Buttons;
                 int i = 0;
                 if (update.Type == UpdateType.Message)
                 {
@@ -56,11 +40,11 @@ namespace Notifications.BL.Commands
                     {
                         if (i == 1 && Ev != EventList.Last())
                         {
-                            await _botClient.SendTextMessageAsync(id, $"<u><b>{Ev.Title}</b></u>\n{Ev.ShortDesc}.\n",
+                            await _botClient.SendTextMessageAsync(id, $"<u><b>{Ev.Title}</b></u>\n\n{Ev.ShortDesc}.\n",
                             replyMarkup: buttons, parseMode: Telegram.Bot.Types.Enums.ParseMode.Html);
                             return;
                         }
-                        await _botClient.SendTextMessageAsync(id, $"<u><b>{Ev.Title}</b></u>\n{Ev.ShortDesc}.\n",
+                        await _botClient.SendTextMessageAsync(id, $"<u><b>{Ev.Title}</b></u>\n\n{Ev.ShortDesc}.\n",
                             replyMarkup: inlineKeyboardDetail, parseMode: Telegram.Bot.Types.Enums.ParseMode.Html);
                         i++;
                     }
@@ -72,8 +56,8 @@ namespace Notifications.BL.Commands
                     {
                         if (ch == '\n')
                         {
-                            bool check = EventList.FirstOrDefault(x => x.Title == text).Title == text;
-                            if(check == true)
+                            bool chek = EventList.FirstOrDefault(x => x.Title == text).Title == text;
+                            if(chek == true)
                                 break;
                         }
                         text += ch;
@@ -100,11 +84,11 @@ namespace Notifications.BL.Commands
                         {
                             if (i == 1 && Ev != NewEventList.Last())
                             {
-                                await _botClient.SendTextMessageAsync(id, $"<u><b>{Ev.Title}</b></u>\n{Ev.ShortDesc}.\n",
+                                await _botClient.SendTextMessageAsync(id, $"<u><b>{Ev.Title}</b></u>\n\n{Ev.ShortDesc}.\n",
                                 replyMarkup: buttons, parseMode: Telegram.Bot.Types.Enums.ParseMode.Html);
                                 return;
                             }
-                            await _botClient.SendTextMessageAsync(id, $"<u><b>{Ev.Title}</b></u>\n{Ev.ShortDesc}.\n",
+                            await _botClient.SendTextMessageAsync(id, $"<u><b>{Ev.Title}</b></u>\n\n{Ev.ShortDesc}.\n",
                                 replyMarkup: inlineKeyboardDetail, parseMode: Telegram.Bot.Types.Enums.ParseMode.Html);
                             i++;
                         }
