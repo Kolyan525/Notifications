@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Notifications.DAL.DbInitializer;
 using Serilog;
 using Serilog.Events;
+using Serilog.Sinks.SystemConsole.Themes;
 using System;
 using X.Extensions.Logging.Telegram;
 
@@ -43,7 +44,7 @@ namespace Notifications.Api
                     rollingInterval: RollingInterval.Day,
                     restrictedToMinimumLevel: LogEventLevel.Information
                 )
-                .WriteTo.Console().CreateLogger();
+                .WriteTo.Console(theme: AnsiConsoleTheme.Code).CreateLogger();
             try
             {
                 Log.Information("Notifications App Is Starting");

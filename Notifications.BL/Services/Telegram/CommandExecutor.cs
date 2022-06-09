@@ -41,7 +41,7 @@ namespace Notifications.BL.Services.Telegram
                     case "Події":
                         await ExecuteCommand(CommandNames.GetEvents, update);
                         return;
-                    case "Підписані події":
+                    case "Відстежувані події":
                         await ExecuteCommand(CommandNames.GetSubscriptionEvents, update);
                         return;
                     case "Подія":

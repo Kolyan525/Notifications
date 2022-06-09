@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Hangfire;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Notifications.BL.IRepository;
 using Notifications.BL.Services.Telegram;
@@ -182,6 +183,15 @@ namespace Notifications.BL.Services
             sub.NotificationTypeSubscriptionId = ntsub.NotificaitonTypeSubscriptionId;
 
             await unitOfWork.Save();
+
+            var @event = await unitOfWork.Events.Get(x => x.EventId == eventId);
+
+            var timeToEvent = @event.StartAt.ToLocalTime().Subtract(TimeSpan.FromMinutes(1));
+
+            BackgroundJob.Schedule(
+                () => NotifyUser(@event, userId),
+                timeToEvent);
+
             return ApiResponse.Ok("Succesfully subscribed!");
         }
 
@@ -396,19 +406,17 @@ namespace Notifications.BL.Services
         /// <param name="timeSpan">The time, before which the user gets notified</param>
         /// <param name="interval">The checking interval</param>
         /// <returns></returns>
-        public bool IsDue(Event @event, TimeSpan timeSpan, TimeSpan interval)
+        public bool IsDue(Event @event, TimeSpan timeSpan, TimeSpan interval, DateTime today)
         {
-            DateTime date = DateTime.Now;
-
             // 32, 10 | example
             // Event will be in 40 m | example
-            var timeBeforeEvent = @event.StartAt.Subtract(date);
+            var timeBeforeEvent = @event.StartAt.ToLocalTime().Subtract(today.ToLocalTime());
 
             bool due = timeBeforeEvent <= timeSpan.Add(interval) && timeBeforeEvent >= timeSpan.Subtract(interval) ? true : false;
             //DateTime combined = date.Add(timeSpan);
             
             Console.WriteLine("Now ({0}) + time ({1}) = {2}" +
-                "\nEvent date {3} ({4})", date, timeSpan, date.Add(timeSpan), @event.StartAt, due);
+                "\nEvent date {3} ({4})", today, timeSpan, today.Add(timeSpan), @event.StartAt.ToLocalTime(), due);
 
             return due;
         }
@@ -445,10 +453,13 @@ namespace Notifications.BL.Services
         {
             var events = await unitOfWork.Events.GetAll();
 
+            var today = DateTime.UtcNow.ToLocalTime();
+            Console.WriteLine($"Recurring local time {today}");
+
             foreach (var @event in events)
             {
                 var users = await GetEventSubscribedUsersId(@event.EventId);
-                if(IsDue(@event, timeSpan, interval))
+                if(IsDue(@event, timeSpan, interval, today))
                 {
                     Console.WriteLine($"The event \"{@event.Title}\" will take place in {timeSpan} time span!");
                     foreach (var user in users.Data)

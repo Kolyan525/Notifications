@@ -26,14 +26,14 @@ namespace Notifications.BL.Commands
             ReplyKeyboardMarkup replyKeyboard = new (new[]
             {
                 new KeyboardButton[] {"Список команд", "Події"},
-                new KeyboardButton[] { "Подія", "Підписані події" },
+                new KeyboardButton[] { "Подія", "Відстежувані події" },
                 new KeyboardButton[] { "Категорії" }
             })
             {
                 ResizeKeyboard = true
             };
 
-            await _botClient.SendTextMessageAsync(user.ChatId, "Вітаємо! Ви запустили нашого телеграм-бота! Для того, щоб переглянути список команд введіть 'help', або ж оберіть цей варіант у меню! ",
+            await _botClient.SendTextMessageAsync(user.ChatId, "Вітаємо! Ви запустили нашого телеграм-бота! Для того, щоб переглянути список команд введіть 'Список команд', або ж оберіть цей варіант у меню! ",
                 ParseMode.Markdown, replyMarkup: replyKeyboard);
 
         }

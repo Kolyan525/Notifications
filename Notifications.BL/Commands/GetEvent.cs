@@ -86,7 +86,11 @@ namespace Notifications.BL.Commands
                 {
                     if (item.Title == text)
                     {
-                        var response = $"<u><b>{item.Title}</b></u>\n<b>Опис події:</b> {item.Description}.";
+                        var response = $"<u><b>{item.Title}</b></u>\n" +
+                            $"\n<b>Опис події:</b> <em>{item.Description}.</em>\n" +
+                            $"\n{(item.EventLink != null ? "<b>Посилання: </b>" + item.EventLink : "")}" +
+                            $"\n{(item.Location != null  ? "<b>Місце проведення: </b>" + item.Location : "")}" +
+                            $"\n{(item.EventLink != null ? "<b>Початок: </b>" + item.StartAt.ToLocalTime() : "")}";
                         if (_context.SubscriptionEvents.Any())
                         {
                             var check = notificationsService.SubscriptionExists(item.EventId, id.ToString()).Result;

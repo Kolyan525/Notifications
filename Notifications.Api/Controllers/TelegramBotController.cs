@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Telegram.Bot.Types;
 using Notifications.BL.Services.Telegram;
+using Microsoft.Extensions.Logging;
 
 namespace Notifications.Api.Controllers
 {
@@ -12,10 +13,12 @@ namespace Notifications.Api.Controllers
     public class TelegramBotController : ControllerBase
     {
         private readonly ICommandExecutor commandExecutor;
+        ILogger<TelegramBotController> logger;
 
-        public TelegramBotController(ICommandExecutor _commandExecutor)
+        public TelegramBotController(ICommandExecutor _commandExecutor, ILogger<TelegramBotController> logger)
         {
             commandExecutor = _commandExecutor;
+            this.logger = logger;
         }
 
         [HttpPost]
@@ -32,10 +35,12 @@ namespace Notifications.Api.Controllers
 
             try
             {
+                logger.LogInformation($"Executing command #{upd}");
                 await commandExecutor.Execute(upd);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                logger.LogError(ex, "Something went wrong when executing bot command");
                 return Ok();
             }
 

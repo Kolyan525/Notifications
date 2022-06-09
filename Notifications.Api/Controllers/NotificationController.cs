@@ -79,7 +79,8 @@ namespace Notifications.Api.Controllers
             // Schedule
             //var now = notificationsService.IsDue(60);
             
-            RecurringJob.AddOrUpdate<NotificationsService>(x => x.CheckEvents(new TimeSpan(0, 1, 0), new TimeSpan(0, 1, 0)), Cron.Minutely);
+            
+            RecurringJob.AddOrUpdate<NotificationsService>(x => x.CheckEvents(new TimeSpan(0, 3, 0), new TimeSpan(0, 3, 0)), Cron.Minutely);
 
             return Ok();
         }

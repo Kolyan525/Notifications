@@ -103,20 +103,20 @@ namespace Notifications.DAL.DbInitializer
 
         public async Task SeedEvents()
         {
-            var categoryUniversal = context.Categories.First(x => x.CategoryName == "Universal");
-            var categoryQuarantine = context.Categories.First(x => x.CategoryName == "Quarantine");
-            var categoryLecture = context.Categories.First(x => x.CategoryName == "Lecture");
-            var categoryFestivalsFairs = context.Categories.First(x => x.CategoryName == "Festivals-fairs");
-            var categoryMasterClass = context.Categories.First(x => x.CategoryName == "Master-Class");
-            var categoryOrganizational = context.Categories.First(x => x.CategoryName == "Organizational");
+            var categoryUniversal = context.Categories.First(x => x.CategoryName == "Загальноакадемічні");
+            var categoryQuarantine = context.Categories.First(x => x.CategoryName == "Карантин");
+            var categoryLecture = context.Categories.First(x => x.CategoryName == "Лекції");
+            var categoryFestivalsFairs = context.Categories.First(x => x.CategoryName == "Фестивалі");
+            var categoryMasterClass = context.Categories.First(x => x.CategoryName == "Майстер-класи");
+            var categoryOrganizational = context.Categories.First(x => x.CategoryName == "Організаційні");
 
             await CreateEventIfNotExists(new Event
             {
-                Title = "SIKE",
+                Title = "Перехід на онлайн навчання",
                 Description = "Шановні студенти! На наступні три тижні нам потрібно всім разом (студентам і викладачам) об’єднатися, щоб не втратити дорогоцінний час другого семестру. Тому навчанння продовжиться в онлайн режимі.",
                 ShortDesc = "Шановні студенти! На наступні три тижні нам потрібно всім разом...",
                 EventLink = "https://docs.google.com/document/d/1X7SwM3uUyATgTzd6XIfqop1moM26FsjXfiMxfZqQCZA",
-                StartAt = DateTime.Now.AddDays(3).ToUniversalTime(),
+                StartAt = DateTime.Now.AddMinutes(5).ToUniversalTime(),
                 EventCategories = new List<EventCategory>
                 {
                     new EventCategory
@@ -140,7 +140,7 @@ namespace Notifications.DAL.DbInitializer
                 Description = "Вітаю, мене звати Наталія, я займаюся міжнародними рейтингами та членством в них НаУ\"ОА\". Цього року U - Multirank проводить опитування серед студентів спеціальності «Комп’ютерні науки». Будь ласка, внесіть свій внесок у високе місце NaU \"OA\" у цьому рейтингу, заповнивши невелике опитування. Я закріпила лист нижче",
                 ShortDesc = "Вітаю, мене звати Наталія, я займаюся міжнародними рейтингами та членством в них...",
                 EventLink = "https://che-survey.de/uc/umr2022/",
-                StartAt = DateTime.Now.AddDays(2).ToUniversalTime(),
+                StartAt = DateTime.Now.AddMinutes(7).ToUniversalTime(),
                 EventCategories = new List<EventCategory>
                 {
                     new EventCategory
@@ -156,7 +156,7 @@ namespace Notifications.DAL.DbInitializer
                 Description = "Публічне обговорення проекту \"Положення про наставництво\" в НаУ \"ОА\"",
                 ShortDesc = "Публічне обговорення проекту...",
                 EventLink = "https://che-survey.de/uc/umr2022/",
-                StartAt = new DateTime(2022, 6, 6, 12, 00, 00).ToUniversalTime(),
+                StartAt = DateTime.Now.AddMinutes(9).ToUniversalTime(),
                 EventCategories = new List<EventCategory>
                 {
                     new EventCategory
@@ -176,7 +176,7 @@ namespace Notifications.DAL.DbInitializer
                 Description = "Відкритий Університет. Лекція Рустема Аблятіфа - «Уроки для України крізь призму історії та сучасності Турецької Республіки»",
                 ShortDesc = "Ви повинні прийти і послухати нашу лекцію. Це стосується нашої держави. Спікер – Рустем Аблятіф...",
                 EventLink = String.Empty,
-                StartAt = new DateTime(2022, 6, 6, 13, 10, 00).ToUniversalTime(),
+                StartAt = DateTime.Now.AddMinutes(11).ToUniversalTime(),
                 EventCategories = new List<EventCategory>
                 {
                     new EventCategory
@@ -196,7 +196,7 @@ namespace Notifications.DAL.DbInitializer
                 Description = "Ви знайдете: - 40 хвилин практичної інформації; -20 хвилин Q&A: відповіді на всі запитання; -5 нововведень у трудовому законодавстві, які повинен знати кожен вихователь: про заробітну плату під час карантину, неоплачувану відпустку, дистанційне та домашнє завдання; -реальні успішні випадки захисту трудових прав освітянами.",
                 ShortDesc = "Онлайн майстер-клас «ТОП - 5 оповідань з трудового права для освітян»",
                 EventLink = "https://forms.gle/AUCJ8w4Tjeb74Lpw8",
-                StartAt = new DateTime(2022, 6, 6, 11, 00, 00).ToUniversalTime(),
+                StartAt = DateTime.Now.AddMinutes(13).ToUniversalTime(),
                 EventCategories = new List<EventCategory>
                 {
                     new EventCategory
@@ -220,7 +220,7 @@ namespace Notifications.DAL.DbInitializer
                 Description = "Національний університет \"Острозька академія\" організував передачу гуманітарної допомоги внутрішньо переміщеним особам та цивільному населенню Острога, які опинилися у складних життєвих обставинах і зараз проживають у гуртожитках Острозької академії.",
                 ShortDesc = "Національний університет \"Острозька академія\" організував...",
                 EventLink = "https://docs.google.com/document/d/1X7SwM3uUyATgTzd6XIfqop1moM26FsjXfiMxfZqQCZA",
-                StartAt = new DateTime(2022, 6, 6, 15, 30, 00).ToUniversalTime(),
+                StartAt = DateTime.Now.AddMinutes(15).ToUniversalTime(),
                 EventCategories = new List<EventCategory>
                 {
                     new EventCategory
@@ -236,7 +236,7 @@ namespace Notifications.DAL.DbInitializer
                 Description = "Національний університет «Острозька академія» в рамках Фонду гуманітарної підтримки ВНЗ України реалізує безкоштовний навчальний курс «Спільнота підтримки університету», який є продовженням та розширенням проекту «Психологічна підтримка вчителів і репетиторів» запущено в березні цього року.",
                 ShortDesc = "Національний університет «Острозька академія» в рамках Фонду гуманітарної підтримки ВНЗ України реалізує...",
                 EventLink = "https://docs.google.com/document/d/1X7SwM3uUyATgTzd6XIfqop1moM26FsjXfiMxfZqQCZA",
-                StartAt = new DateTime(2022, 6, 6, 14, 15, 00).ToUniversalTime(),
+                StartAt = DateTime.Now.AddMinutes(17).ToUniversalTime(),
                 EventCategories = new List<EventCategory>
                 {
                     new EventCategory
@@ -339,12 +339,17 @@ namespace Notifications.DAL.DbInitializer
             }
 
             string a1 = "denys.vozniuk@oa.edu.ua";
-            string a2 = "mykola.kalinichenko@oa.edu.ua";
-            string a3 = "oleksandra.kravets@oa.edu.ua";
+            string a1p = "Denys@1234";
 
-            await CreateUserIfNotExists(a1);
-            await CreateUserIfNotExists(a2);
-            await CreateUserIfNotExists(a3);
+            string a2 = "mykola.kalinichenko@oa.edu.ua";
+            string a2p = "Kolya@1234";
+
+            string a3 = "oleksandra.kravets@oa.edu.ua";
+            string a3p = "Sasha@1234";
+
+            await CreateUserIfNotExists(a1, a1p);
+            await CreateUserIfNotExists(a2, a2p);
+            await CreateUserIfNotExists(a3, a3p);
 
             //UserManager<ApplicationUser> userManager = services.GetService<UserManager<ApplicationUser>>();
 
@@ -468,7 +473,7 @@ namespace Notifications.DAL.DbInitializer
             }
         }
 
-        public async Task CreateUserIfNotExists(string email)
+        public async Task CreateUserIfNotExists(string email, string password)
         {
             UserManager<ApplicationUser> userManager = services.GetService<UserManager<ApplicationUser>>();
 
@@ -483,7 +488,7 @@ namespace Notifications.DAL.DbInitializer
                     UserName = email,
                 };
 
-                IdentityResult userResult = await userManager.CreateAsync(user);
+                IdentityResult userResult = await userManager.CreateAsync(user, password);
 
                 if (userResult.Succeeded)
                     logger.LogInformation($"User {user.Email} created");
