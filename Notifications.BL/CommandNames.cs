@@ -11,5 +11,7 @@
         public const string GetSubscription = "get-subscription";
         public const string GetUnsubscribe = "get-unsubscribe";
         public const string GetCategories = "get-categories";
+        public const string GetSubscriptionForCategory = "get-sub-for-category";
+        public const string GetUnsubscribeFromCategory = "get-unsub-for-category";
     }
 }

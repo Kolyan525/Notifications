@@ -78,13 +78,11 @@ namespace Notifications.BL.Services
                             .ThenInclude(se => se.Event)
                     );
                 }
-
                 var events = new List<Event>();
                 foreach (var item in nts.Subscription.SubscriptionEvents)
                 {
                     events.Add(item.Event);
                 }
-
                 logger.LogInformation($"Successfully executed {nameof(GetSubscribedEvents)}");
                 return events;
             }
@@ -142,7 +140,7 @@ namespace Notifications.BL.Services
             if (exists.Result) return ApiResponse.Conflict("Event subscription already exists");
 
             var notificationTelegram = await unitOfWork.NotificationTypes.Get(x => x.NotificationName == "Telegram");
-            
+
             var subEvent = new SubscriptionEvent
             {
                 EventId = eventId,
@@ -185,7 +183,7 @@ namespace Notifications.BL.Services
                 await SubscribeToEvent(eventCategory.EventId, userId);
 
             //await unitOfWork.Save();
-            
+
             return ApiResponse.Ok("Succesfully subscribed to the category!");
         }
 
@@ -252,7 +250,7 @@ namespace Notifications.BL.Services
                     }
                 }
             }
-            
+
             return ApiResponse.NoContent("Successfully unsubscribed from category");
 
             // if not above, then i haven't subbed or nts/subEvent doesn't exist
@@ -286,14 +284,13 @@ namespace Notifications.BL.Services
             return ApiResponse.NotFound($"No subscriptions was found with following ID: \"{userId}\"");
         }
 
-
         // How to validate seacrh from spaces, empty strings etc.?
         // Search using specific date format
-        public async Task<IApiResponse> SearchEvents(string search)
+        public async Task<IApiResponse<IList<Event>>> SearchEvents(string search)
         {
             IList<Event> events = null;
-            if (string.IsNullOrEmpty(search) && !string.IsNullOrWhiteSpace(search)) return ApiResponse.BadRequest("Submitted data was invalid");
-            
+            if (string.IsNullOrEmpty(search) && !string.IsNullOrWhiteSpace(search)) return null;
+
             var date = DateTime.TryParseExact(search, "d.M.yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime dateTime);
             if (!date)
             {
@@ -312,7 +309,7 @@ namespace Notifications.BL.Services
 
             return ApiResponse.Ok(events);
         }
-
+        
         public async Task<IApiResponse> FilterEvents(List<string> query)
         {
             if (query == null || query.Count == 0) return ApiResponse.BadRequest("The query was empty");
@@ -333,6 +330,7 @@ namespace Notifications.BL.Services
                     filtered.Add(@event);
                 }
             }
+
             return ApiResponse.Ok(filtered);
         }
 
@@ -343,7 +341,7 @@ namespace Notifications.BL.Services
             {
                 foreach (var ec in @event.EventCategories)
                 {
-                    if(ec.Category.CategoryName.Equals(category.CategoryName))
+                    if (ec.Category.CategoryName.Equals(category.CategoryName))
                         checks++;
                 }
             }
@@ -362,7 +360,7 @@ namespace Notifications.BL.Services
             var margin = @event.StartAt.Subtract(date);
             bool due = margin <= timeSpan.Add(interval) && margin >= timeSpan.Subtract(interval) ? true : false;
             //DateTime combined = date.Add(timeSpan);
-            
+
             Console.WriteLine("Now ({0}) + time ({1}) = {2}" +
                 "\nEvent date {3} ({4})", date, timeSpan, date.Add(timeSpan), @event.StartAt, due);
 
@@ -384,7 +382,7 @@ namespace Notifications.BL.Services
 
             foreach (var @event in events)
             {
-                if(IsDue(@event, timeSpan, interval))
+                if (IsDue(@event, timeSpan, interval))
                     Console.WriteLine($"The event \"{@event.Title}\" will take place in {timeSpan} time span!");
             }
         }
@@ -405,18 +403,3 @@ namespace Notifications.BL.Services
         }
     }
 }
-
-/* 
- * // TODO:
- * filter Events based on Categories
- * Sort Events
- * 
-    передбачається, що наприклад категорії подій будуть додаватися спершу, тоді вже самі події
-    коли користувач підписуватиметься, ви спершу створите його підписку, а тоді додасте підписку до якоїсь категорії подій
-
-
-
-    Done: search event, subscribe to event, unsubscribe to event, get list of subbed events, add category to event
-          subscribe to category,
- */
-

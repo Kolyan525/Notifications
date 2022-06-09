@@ -80,11 +80,11 @@ namespace Notifications.DAL.DbInitializer
 
             await CreateEventIfNotExists(new Event
             {
-                Title = "Online Learning in NaU\"OA\" Starts",
-                Description = "Dear students! for the next three weeks we need all together (students and teachers) to unite so as not to lose precious time of the second semester. Therefore an online learning will be established.",
-                ShortDesc = "Very short description for online learning",
+                Title = "Початок онлайн навчання в НаУ\"OA \"",
+                Description = "Шановні студенти! На наступні три тижні нам потрібно всім разом (студентам і викладачам) об’єднатися, щоб не втратити дорогоцінний час другого семестру. Тому навчанння продовжиться в онлайн режимі.",
+                ShortDesc = "Шановні студенти! На наступні три тижні нам потрібно всім разом...",
                 EventLink = "https://docs.google.com/document/d/1X7SwM3uUyATgTzd6XIfqop1moM26FsjXfiMxfZqQCZA",
-                StartAt = new DateTime(2021, 11, 20, 9, 00, 00),
+                StartAt = DateTime.Now.AddDays(3).ToUniversalTime(),
                 EventCategories = new List<EventCategory>
                 {
                     new EventCategory
@@ -104,11 +104,11 @@ namespace Notifications.DAL.DbInitializer
 
             await CreateEventIfNotExists(new Event
             {
-                Title = "International rating",
-                Description = "Congratulations, My name is Natalia, I deal with international rankings and NaU\"OA\" membership in them. This year, U - Multirank is conducting a survey among students majoring in Computer Science. Please contribute to the high place of NaU\"OA\" in this ranking by filling out a small survey. I pinned the letter below",
-                ShortDesc = "Very short description for international rating",
+                Title = "Міжнародний рейтинг",
+                Description = "Вітаю, мене звати Наталія, я займаюся міжнародними рейтингами та членством в них НаУ\"ОА\". Цього року U - Multirank проводить опитування серед студентів спеціальності «Комп’ютерні науки». Будь ласка, внесіть свій внесок у високе місце NaU \"OA\" у цьому рейтингу, заповнивши невелике опитування. Я закріпила лист нижче",
+                ShortDesc = "Вітаю, мене звати Наталія, я займаюся міжнародними рейтингами та членством в них...",
                 EventLink = "https://che-survey.de/uc/umr2022/",
-                StartAt = new DateTime(2021, 12, 20, 11, 24, 00),
+                StartAt = DateTime.Now.AddDays(2).ToUniversalTime(),
                 EventCategories = new List<EventCategory>
                 {
                     new EventCategory
@@ -120,11 +120,11 @@ namespace Notifications.DAL.DbInitializer
 
             await CreateEventIfNotExists(new Event
             {
-                Title = "Discussion of the Regulations",
-                Description = "Public discussion of the Regulations preject on mentoring in NaU\"OA\"",
-                ShortDesc = "We should discuss that, really!",
+                Title = "Обговорення проекту",
+                Description = "Публічне обговорення проекту \"Положення про наставництво\" в НаУ \"ОА\"",
+                ShortDesc = "Публічне обговорення проекту...",
                 EventLink = "https://che-survey.de/uc/umr2022/",
-                StartAt = new DateTime(2022, 2, 10, 12, 00, 00),
+                StartAt = new DateTime(2022, 6, 6, 12, 00, 00).ToUniversalTime(),
                 EventCategories = new List<EventCategory>
                 {
                     new EventCategory
@@ -140,11 +140,11 @@ namespace Notifications.DAL.DbInitializer
 
             await CreateEventIfNotExists(new Event
             {
-                Title = "Lecture by Rustem Ablyatif",
-                Description = "Open University. Lecture by Rustem Ablyatif. Lessons for Ukraine through the prism of the history and modernity of Turkey Republic",
-                ShortDesc = "You should come and listen to our lection. It tackles some important information. Speaker is Rustem Ablyatif.",
+                Title = "Лекція Рустема Аблятіфа",
+                Description = "Відкритий Університет. Лекція Рустема Аблятіфа - «Уроки для України крізь призму історії та сучасності Турецької Республіки»",
+                ShortDesc = "Ви повинні прийти і послухати нашу лекцію. Це стосується нашої держави. Спікер – Рустем Аблятіф...",
                 EventLink = String.Empty,
-                StartAt = new DateTime(2022, 2, 10, 15, 30, 00),
+                StartAt = new DateTime(2022, 6, 6, 13, 10, 00).ToUniversalTime(),
                 EventCategories = new List<EventCategory>
                 {
                     new EventCategory
@@ -157,14 +157,13 @@ namespace Notifications.DAL.DbInitializer
                     }
                 }
             });
-
             await CreateEventIfNotExists(new Event
             {
-                Title = "Master class about labor law",
-                Description = "You will find: - 40 minutes of practical information; -20 minutes Q &Asession: answers to all questions; -5 innovations in labor legislation that every educator should know: about wages during quarantine, unpaid leave, remote and homework; -real success cases of protection of labor rights by educators.",
-                ShortDesc = "Online master class \"TOP - 5 short stories in labor law for educators\"",
+                Title = "Майстер-клас з трудового права",
+                Description = "Ви знайдете: - 40 хвилин практичної інформації; -20 хвилин Q&A: відповіді на всі запитання; -5 нововведень у трудовому законодавстві, які повинен знати кожен вихователь: про заробітну плату під час карантину, неоплачувану відпустку, дистанційне та домашнє завдання; -реальні успішні випадки захисту трудових прав освітянами.",
+                ShortDesc = "Онлайн майстер-клас «ТОП - 5 оповідань з трудового права для освітян»",
                 EventLink = "https://forms.gle/AUCJ8w4Tjeb74Lpw8",
-                StartAt = new DateTime(2022, 2, 10, 15, 30, 00),
+                StartAt = new DateTime(2022, 6, 6, 11, 00, 00).ToUniversalTime(),
                 EventCategories = new List<EventCategory>
                 {
                     new EventCategory
@@ -181,13 +180,14 @@ namespace Notifications.DAL.DbInitializer
                     }
                 }
             });
+
             await CreateEventIfNotExists(new Event
             {
-                Title = "Volunteer Front: on humanitarian assistance to internally displaced persons",
-                Description = "The National University of Ostroh organized a transfer of humanitarian aid to internally displaced persons and civilians in Ostroh, who found themselves in difficult life circumstances and currently live in the dormitories of Ostroh Academy.",
-                ShortDesc = "Very short description for volunteer front",
+                Title = "Волонтерський фронт: про гуманітарну допомогу внутрішньо переміщеним особам",
+                Description = "Національний університет \"Острозька академія\" організував передачу гуманітарної допомоги внутрішньо переміщеним особам та цивільному населенню Острога, які опинилися у складних життєвих обставинах і зараз проживають у гуртожитках Острозької академії.",
+                ShortDesc = "Національний університет \"Острозька академія\" організував...",
                 EventLink = "https://docs.google.com/document/d/1X7SwM3uUyATgTzd6XIfqop1moM26FsjXfiMxfZqQCZA",
-                StartAt = new DateTime(2022, 05, 26, 11, 24, 00),
+                StartAt = new DateTime(2022, 6, 6, 15, 30, 00).ToUniversalTime(),
                 EventCategories = new List<EventCategory>
                 {
                     new EventCategory
@@ -196,13 +196,14 @@ namespace Notifications.DAL.DbInitializer
                     }
                 }
             });
+
             await CreateEventIfNotExists(new Event
             {
-                Title = "Information front: about the post-truth era",
-                Description = "Ostroh Academy National University, within the framework of the Humanitarian Support Fund of Ukrainian Universities, is implementing a free training course \"University Support Community\", which is a continuation and expansion of the project \"Psychological Support for Teachers and Tutors\" launched in March this year.",
-                ShortDesc = "Very short description for information front",
+                Title = "Інформаційний фронт: про епоху постправди",
+                Description = "Національний університет «Острозька академія» в рамках Фонду гуманітарної підтримки ВНЗ України реалізує безкоштовний навчальний курс «Спільнота підтримки університету», який є продовженням та розширенням проекту «Психологічна підтримка вчителів і репетиторів» запущено в березні цього року.",
+                ShortDesc = "Національний університет «Острозька академія» в рамках Фонду гуманітарної підтримки ВНЗ України реалізує...",
                 EventLink = "https://docs.google.com/document/d/1X7SwM3uUyATgTzd6XIfqop1moM26FsjXfiMxfZqQCZA",
-                StartAt = new DateTime(2022, 05, 26, 12, 30, 00),
+                StartAt = new DateTime(2022, 6, 6, 14, 15, 00).ToUniversalTime(),
                 EventCategories = new List<EventCategory>
                 {
                     new EventCategory
@@ -358,28 +359,20 @@ namespace Notifications.DAL.DbInitializer
         public async Task CreateEventIfNotExists(Event vent)
         {
             var @event = await context.Events.FirstOrDefaultAsync(
-                e => e.Title == vent.Title &&
-                e.Description == vent.Description &&
-                e.ShortDesc == vent.ShortDesc &&
-                e.EventLink == vent.EventLink &&
+                e => e.Title == vent.Title ||
+                e.Description == vent.Description ||
+                e.ShortDesc == vent.ShortDesc ||
+                e.EventLink == vent.EventLink ||
                 e.StartAt == vent.StartAt);
             if (@event == null)
                 await context.Events.AddAsync(vent);
-            //else
-            //{
-            //    // possible, we need to have a logic of how to update an existing event
-
-            //    @event.Title = vent.Title;
-            //    @event.Description = vent.Description;
-            //    @event.ShortDesc = vent.ShortDesc;
-            //    @event.EventLink = vent.EventLink;
-            //    @event.StartAt = vent.StartAt;
-            //    @event.EventCategories = vent.EventCategories;
-
-            //    //mapper.Map(vent, @event);
-            //    context.Attach(@event);
-            //    context.Entry(@event).State = EntityState.Modified;
-            //}
+            else
+            {
+                vent.EventId = @event.EventId;
+                mapper.Map(vent, @event);
+                context.Events.Attach(@event);
+                context.Entry(@event).State = EntityState.Modified;
+            }
         }
 
         public async Task CreateCategoryIfNotExists(Category category)

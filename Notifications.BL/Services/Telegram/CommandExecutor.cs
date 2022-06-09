@@ -41,7 +41,7 @@ namespace Notifications.BL.Services.Telegram
                     case "Події":
                         await ExecuteCommand(CommandNames.GetEvents, update);
                         return;
-                    case "Підписані події":
+                    case "Відстежувані події":
                         await ExecuteCommand(CommandNames.GetSubscriptionEvents, update);
                         return;
                     case "Подія":
@@ -55,40 +55,47 @@ namespace Notifications.BL.Services.Telegram
 
             if (update.Type == UpdateType.CallbackQuery)
             {
-                if (update.CallbackQuery.Data.Contains("Subscription"))
+                switch (update.CallbackQuery.Data)
                 {
-                    await ExecuteCommand(CommandNames.GetSubscription, update);
-                    return;
-                }
-                if (update.CallbackQuery.Data.Contains("Unsubscribe"))
-                {
-                    await ExecuteCommand(CommandNames.GetUnsubscribe, update);
-                    return;
-                }
-                if (update.CallbackQuery.Data.Contains("Detail"))
-                {
-                    await ExecuteCommand(CommandNames.GetEvent, update);
-                    return;
-                }
-                if (update.CallbackQuery.Data.Contains("NextEvents"))
-                {
-                    await ExecuteCommand(CommandNames.GetEvents, update);
-                    return;
-                }
-                if (update.CallbackQuery.Data.Contains("NextSubEvents"))
-                {
-                    await ExecuteCommand(CommandNames.GetSubscriptionEvents, update);
-                    return;
-                }
-                if (update.CallbackQuery.Data.Contains("NextCategoryEvents"))
-                {
-                    await ExecuteCommand(CommandNames.GetCategories, update);
-                    return;
-                }
-                if (update.CallbackQuery.Data.Contains("PreviousCategoryEvents"))
-                {
-                    await ExecuteCommand(CommandNames.GetCategories, update);
-                    return;
+                    case "Subscription":
+                        await ExecuteCommand(CommandNames.GetSubscription, update);
+                        return;
+                    case "Unsubscribe":
+                        await ExecuteCommand(CommandNames.GetUnsubscribe, update);
+                        return;
+                    case "Detail":
+                        await ExecuteCommand(CommandNames.GetEvent, update);
+                        return;
+                    case "NextEvents":
+                        await ExecuteCommand(CommandNames.GetEvents, update);
+                        return;
+                    case "NextSearchingEvents":
+                        await ExecuteCommand(CommandNames.GetEvent, update);
+                        return;
+                    case "NextSubEvents":
+                        await ExecuteCommand(CommandNames.GetSubscriptionEvents, update);
+                        return;
+                    case "NextCategoryEvents":
+                        await ExecuteCommand(CommandNames.GetCategories, update);
+                        return;
+                    case "PreviousCategoryEvents":
+                        await ExecuteCommand(CommandNames.GetCategories, update);
+                        return;
+                    case "SubscriptionCategory":
+                        await ExecuteCommand(CommandNames.GetSubscriptionForCategory, update);
+                        return;
+                    case "UnsubscribeCategory":
+                        await ExecuteCommand(CommandNames.GetUnsubscribeFromCategory, update);
+                        return;
+                    case "NextCategories":
+                        await ExecuteCommand(CommandNames.GetCategories, update);
+                        return;
+                    case "NextCategoryEventsWithNextCategories":
+                        await ExecuteCommand(CommandNames.GetCategories, update);
+                        return;
+                    case "PreviousCategoryEventsWithNextCategories":
+                        await ExecuteCommand(CommandNames.GetCategories, update);
+                        return;
                 }
             }
 
@@ -98,9 +105,9 @@ namespace Notifications.BL.Services.Telegram
                 return;
             }
 
-            if (_context.telegramEvent.Any())
+            if (_context.TelegramEvent.Any())
             {
-                var option = _context.telegramEvent.FirstOrDefault();
+                var option = _context.TelegramEvent.FirstOrDefault();
                 if (option.EventOption == "Подія")
                 {
                     await ExecuteCommand(CommandNames.GetEvent, update);
@@ -110,7 +117,7 @@ namespace Notifications.BL.Services.Telegram
             else
             {
                 await _botClient.SendTextMessageAsync(update.Message.Chat.Id, "Не має такої команди!" +
-                    "\nЩоб дізнатися список команд введіть \"help\", або виберіть цю команду у меню");
+                    "\nЩоб дізнатися список команд введіть \"Список команд\", або виберіть цю команду у меню");
                 return;
             }
         }

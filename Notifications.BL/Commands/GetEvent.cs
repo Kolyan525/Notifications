@@ -9,7 +9,6 @@ using Notifications.BL.Services.Telegram;
 using Notifications.DAL.Models;
 using Notifications.BL.IRepository;
 using Notifications.BL.Services;
-using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 
 namespace Notifications.BL.Commands
@@ -21,14 +20,16 @@ namespace Notifications.BL.Commands
         private readonly IUserService _userService;
         readonly IUnitOfWork unitOfWork;
         readonly NotificationsService notificationsService;
+        readonly IPaginationService paginationService;
 
-        public GetEvent(TelegramBot telegramBot, NotificationsContext context, IUserService userService, IUnitOfWork unitOfWork, NotificationsService notificationsService)
+        public GetEvent(TelegramBot telegramBot, NotificationsContext context, IUserService userService, IUnitOfWork unitOfWork, NotificationsService notificationsService, IPaginationService paginationService)
         {
             _context = context;
             _userService = userService;
             _botClient = telegramBot.GetBot().Result;
             this.unitOfWork = unitOfWork;
             this.notificationsService = notificationsService;
+            this.paginationService = paginationService;
         }
 
         public override string Name => CommandNames.GetEvent;
@@ -37,40 +38,96 @@ namespace Notifications.BL.Commands
         {
             var user = await _userService.GetOrCreate(update);
             var id = user.ChatId;
-            EventActionActive TelActionEvent;
             var EventList = await unitOfWork.Events.GetAll();
             string text = string.Empty;
             string category = string.Empty;
+            int k = 0, i = 0;
             
             if (EventList.Any())
             {
+                var inlineKeyboardSubscription = TelegramButtons.GetEvent.Subscription;
+                var inlineKeyboardUnsubscribe = TelegramButtons.GetEvent.Unsubscribe;
+                var buttonsWithSubscription = TelegramButtons.GetEvent.ButtonsWithSubscription;
+                var buttonsWithUnsubscribe = TelegramButtons.GetEvent.ButtonsWithUnsubscribe;
 
-                InlineKeyboardMarkup inlineKeyboardSubscription = new(new[]
+                if (update.Type == UpdateType.CallbackQuery)
                 {
-                new []
-                {
-                    InlineKeyboardButton.WithCallbackData(text: "Підписатися", callbackData: "Subscription")
-                }
-            });
-                InlineKeyboardMarkup inlineKeyboardUnsubscribe = new(new[]
-                {
-                new []
-                {
-                    InlineKeyboardButton.WithCallbackData(text: "Відписатися", callbackData: "Unsubscribe")
-                }
-            });
-
-                if(update.Type == UpdateType.CallbackQuery)
-                {
-                    foreach (var ch in update.CallbackQuery.Message.Text)
+                    if (update.CallbackQuery.Data.Contains("Detail"))
                     {
-                        if (ch == '\n')
+                        text = GetEventFromText(update, EventList);
+                    }
+                    else if (update.CallbackQuery.Data.Contains("NextSearchingEvents"))
+                    {
+                        var list = paginationService.GetPagination().Result;
+                        if (list.Any())
                         {
-                            bool chek = EventList.FirstOrDefault(x => x.Title == text).Title == text;
-                            if (chek == true)
-                                break;
+                            string CallbackQueryText = GetEventFromText(update, EventList);
+                            DAL.Models.Event lastEvent = null;
+                            lastEvent = EventList.FirstOrDefault(e => e.Title == CallbackQueryText);
+                            if (lastEvent != null)
+                            {
+                                foreach (var item in list)
+                                {
+                                    bool check = false;
+                                    var response = $"<u><b>{item.Title}</b></u>\n\n<b>Опис події:</b> {item.Description}.";
+                                    if(item.EventLink != string.Empty)
+                                        response += $"\n\n<b>Посилання:</b> {item.EventLink}";
+                                    if(item.Location != string.Empty)
+                                        response += $"\n\n<b>Місце проведення:</b> {item.Location}";
+                                    if(item.Price > 0)
+                                        response += $"\n\n<b>Ціна:</b> {item.Price}";
+                                    response += $"\n\n<b>Початок:</b> {item.StartAt}";
+
+                                    if (k > 0)
+                                    {
+                                        if (_context.SubscriptionEvents.Any())
+                                        {
+                                            check = notificationsService.SubscriptionExists(item.EventId, id.ToString()).Result;
+                                            if (check == true)
+                                            {
+                                                if(i == 1 && item != list.Last())
+                                                {
+                                                    await _botClient.SendTextMessageAsync(id, response, replyMarkup: buttonsWithUnsubscribe, parseMode: ParseMode.Html);
+                                                    await changeDatabase();
+                                                    return;
+                                                }
+                                                else if(item == list.Last())
+                                                {
+                                                    await _botClient.SendTextMessageAsync(id, response, replyMarkup: inlineKeyboardUnsubscribe, parseMode: ParseMode.Html);
+                                                    await changeDatabase();
+                                                    await paginationService.ClearCache();
+                                                    return;
+                                                }
+                                                await _botClient.SendTextMessageAsync(id, response, replyMarkup: inlineKeyboardUnsubscribe, parseMode: ParseMode.Html);
+                                                await changeDatabase();
+                                            }
+                                        }
+                                        if (check == false)
+                                        {
+                                            if (i == 1 && item != list.Last())
+                                            {
+                                                await _botClient.SendTextMessageAsync(id, response, replyMarkup: buttonsWithSubscription, parseMode: ParseMode.Html);
+                                                await changeDatabase();
+                                                return;
+                                            }
+                                            else if (item == list.Last())
+                                            {
+                                                await _botClient.SendTextMessageAsync(id, response, replyMarkup: inlineKeyboardSubscription, parseMode: ParseMode.Html);
+                                                await changeDatabase();
+                                                await paginationService.ClearCache();
+                                                return;
+                                            }
+                                            await _botClient.SendTextMessageAsync(id, response, replyMarkup: inlineKeyboardSubscription, parseMode: ParseMode.Html);
+                                            await changeDatabase();
+                                        }
+                                        i++;
+                                    }
+                                    if (item.Title == lastEvent.Title)
+                                        k++;
+                                }
+                            }
+                            return;
                         }
-                        text += ch;
                     }
                 }
                 else if(update.Type == UpdateType.Message)
@@ -82,45 +139,108 @@ namespace Notifications.BL.Commands
                     return;
                 }
 
-                foreach (var item in EventList)
+                var reslut = await notificationsService.SearchEvents(text);
+                var events = reslut.Data;
+                
+                if (events.Any())
                 {
-                    if (item.Title == text)
+                    paginationService.SetPaginationList(events);
+                    foreach (var item in events)
                     {
-                        var response = $"<u><b>{item.Title}</b></u>\n<b>Опис події:</b> {item.Description}.";
+                        bool check = false;
+                        var response = $"<u><b>{item.Title}</b></u>\n\n<b>Опис події:</b> {item.Description}.";
+                        if (item.EventLink != string.Empty)
+                            response += $"\n\n<b>Посилання:</b> {item.EventLink}";
+                        if (item.Location != string.Empty)
+                            response += $"\n\n<b>Місце проведення:</b> {item.Location}";
+                        if (item.Price > 0)
+                            response += $"\n\n<b>Ціна:</b> {item.Price}";
+                        response += $"\n\n<b>Початок:</b> {item.StartAt}";
+
                         if (_context.SubscriptionEvents.Any())
                         {
-                            var check = notificationsService.SubscriptionExists(item.EventId, id.ToString()).Result;
+                            check = notificationsService.SubscriptionExists(item.EventId, id.ToString()).Result;
                             if (check == true)
                             {
+                                if (i == 1 && item != events.Last())
+                                {
+                                    await _botClient.SendTextMessageAsync(id, response, replyMarkup: buttonsWithUnsubscribe, parseMode: ParseMode.Html);
+                                    await changeDatabase();
+                                    return;
+                                }
+                                else if (item == events.Last())
+                                {
+                                    await _botClient.SendTextMessageAsync(id, response, replyMarkup: inlineKeyboardUnsubscribe, parseMode: ParseMode.Html);
+                                    await changeDatabase();
+                                    await paginationService.ClearCache();
+                                    return;
+                                }
                                 await _botClient.SendTextMessageAsync(id, response, replyMarkup: inlineKeyboardUnsubscribe, parseMode: ParseMode.Html);
-                                TelActionEvent = _context.telegramEvent.SingleOrDefault(x => x == _context.telegramEvent.FirstOrDefault());
-                                _context.telegramEvent.Remove(TelActionEvent);
-                                await _context.SaveChangesAsync();
-                                return;
+                                await changeDatabase();
                             }
                         }
-                        await _botClient.SendTextMessageAsync(id, response, replyMarkup: inlineKeyboardSubscription, parseMode: ParseMode.Html);
-                        TelActionEvent = _context.telegramEvent.SingleOrDefault(x => x == _context.telegramEvent.FirstOrDefault());
-                        _context.telegramEvent.Remove(TelActionEvent);
-                        await _context.SaveChangesAsync();
-                        return;
+                        if (check == false)
+                        {
+                            if (i == 1 && item != events.Last())
+                            {
+                                await _botClient.SendTextMessageAsync(id, response, replyMarkup: buttonsWithSubscription, parseMode: ParseMode.Html);
+                                await changeDatabase();
+                                return;
+                            }
+                            else if (item == events.Last())
+                            {
+                                await _botClient.SendTextMessageAsync(id, response, replyMarkup: inlineKeyboardSubscription, parseMode: ParseMode.Html);
+                                await changeDatabase();
+                                await paginationService.ClearCache();
+                                return;
+                            }
+                            await _botClient.SendTextMessageAsync(id, response, replyMarkup: inlineKeyboardSubscription, parseMode: ParseMode.Html);
+                            await changeDatabase();
+                        }
+                        i++;
                     }
+                    return;
                 }
-                await _botClient.SendTextMessageAsync(id, "Не має такої події!");
-                TelActionEvent = _context.telegramEvent.SingleOrDefault(x => x == _context.telegramEvent.FirstOrDefault());
-                _context.telegramEvent.Remove(TelActionEvent);
-                await _context.SaveChangesAsync();
-                return;
+                else
+                {
+                    await _botClient.SendTextMessageAsync(id, "Не має такої події, яка містила б введений вами текст!");
+                    await changeDatabase();
+                    return;
+                }
             }
             else
             {
                 await _botClient.SendTextMessageAsync(id, "Вибачте, але на даний момент список всіх наявних подій є порожнім!");
-                TelActionEvent = _context.telegramEvent.SingleOrDefault(x => x == _context.telegramEvent.FirstOrDefault());
-                _context.telegramEvent.Remove(TelActionEvent);
-                await _context.SaveChangesAsync();
+                await changeDatabase();
                 return;
             }
 
+        }
+        public async Task changeDatabase()
+        {
+            if (_context.TelegramEvent.Any())
+            {
+                EventActionActive TelActionEvent;
+                TelActionEvent = _context.TelegramEvent.SingleOrDefault(x => x == _context.TelegramEvent.FirstOrDefault());
+                _context.TelegramEvent.Remove(TelActionEvent);
+                await _context.SaveChangesAsync();
+            }
+
+        }
+        public string GetEventFromText(Update update, IList<DAL.Models.Event> EventList)
+        {
+            string text = string.Empty;
+            foreach (var ch in update.CallbackQuery.Message.Text)
+            {
+                if (ch == '\n')
+                {
+                    bool chek = EventList.FirstOrDefault(x => x.Title == text).Title == text;
+                    if (chek == true)
+                        break;
+                }
+                text += ch;
+            }
+            return text;
         }
     }
 }

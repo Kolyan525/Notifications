@@ -3,9 +3,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Types;
-//using Telegram.Bot.Types.Enums;
-//using Telegram.Bot.Types.ReplyMarkups;
-//using Notifications.DAL.Models.Telegram;
 using Notifications.BL.Services.Telegram;
 using Notifications.BL.IRepository;
 using Notifications.DAL.Models;
@@ -62,24 +59,8 @@ namespace Notifications.BL.Commands
                     }
                 }
             }
-            InlineKeyboardMarkup inlineKeyboardDetail = new(new[]
-                {
-                    new []
-                    {
-                        InlineKeyboardButton.WithCallbackData(text: "Детальніше", callbackData: "Detail")
-                    }
-                });
-            InlineKeyboardMarkup buttons = new(new[]
-            {
-                    new InlineKeyboardButton[]
-                    {
-                        InlineKeyboardButton.WithCallbackData(text: "Детальніше", callbackData: "Detail")
-                    },
-                    new InlineKeyboardButton[]
-                    {
-                        InlineKeyboardButton.WithCallbackData(text: "Завантажити ще", callbackData: "NextSubEvents")
-                    }
-                });
+            var inlineKeyboardDetail = TelegramButtons.GetSubscriptionEvents.Detail;
+            var buttons = TelegramButtons.GetSubscriptionEvents.Buttons;
             int i = 0;
             if (update.Type == UpdateType.Message)
             {

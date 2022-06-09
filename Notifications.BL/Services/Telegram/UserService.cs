@@ -36,11 +36,11 @@ namespace Notifications.BL.Services.Telegram
                 }
             };
 
-            var user = await _context.Users.FirstOrDefaultAsync(x => x.ChatId == newUser.ChatId);
+            var user = await _context.TelegramUsers.FirstOrDefaultAsync(x => x.ChatId == newUser.ChatId);
 
             if (user != null) return user;
 
-            var result = await _context.Users.AddAsync(newUser);
+            var result = await _context.TelegramUsers.AddAsync(newUser);
             await _context.SaveChangesAsync();
 
             return result.Entity;

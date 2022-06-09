@@ -29,15 +29,15 @@ namespace Notifications.BL.Commands
         {
             var user = await _userService.GetOrCreate(update);
 
-            string message = "Введіть назву події, яку бажаєте переглянути серед списку наявних подій! Для того, щоб ознайомитися із списком зі всіма подіями виберіть в меню варіант 'Events'!";
+            string message = "Введіть назву події, яку бажаєте переглянути серед списку наявних подій! Для того, щоб ознайомитися із списком зі всіма подіями виберіть в меню варіант 'Події'!";
             var id = user.ChatId;
             await _botClient.SendTextMessageAsync(id, message);
-            if (!_context.telegramEvent.Any())
+            if (!_context.TelegramEvent.Any())
             {
                 string ev = "Подія";
                 TelActionEvent = new EventActionActive();
                 TelActionEvent.EventOption = ev;
-                await _context.telegramEvent.AddAsync(TelActionEvent);
+                await _context.TelegramEvent.AddAsync(TelActionEvent);
                 await _context.SaveChangesAsync();
             }
         }
