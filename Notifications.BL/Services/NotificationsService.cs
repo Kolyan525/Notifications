@@ -376,7 +376,6 @@ namespace Notifications.BL.Services
                     filtered.Add(@event);
                 }
             }
-
             return ApiResponse.Ok(filtered);
         }
 

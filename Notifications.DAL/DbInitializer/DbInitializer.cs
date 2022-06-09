@@ -213,6 +213,36 @@ namespace Notifications.DAL.DbInitializer
                     }
                 }
             });
+            await CreateEventIfNotExists(new Event
+            {
+                Title = "Volunteer Front: on humanitarian assistance to internally displaced persons",
+                Description = "The National University of Ostroh organized a transfer of humanitarian aid to internally displaced persons and civilians in Ostroh, who found themselves in difficult life circumstances and currently live in the dormitories of Ostroh Academy.",
+                ShortDesc = "Very short description for volunteer front",
+                EventLink = "https://docs.google.com/document/d/1X7SwM3uUyATgTzd6XIfqop1moM26FsjXfiMxfZqQCZA",
+                StartAt = new DateTime(2022, 05, 26, 11, 24, 00),
+                EventCategories = new List<EventCategory>
+                {
+                    new EventCategory
+                    {
+                        Category = categoryUniversal
+                    }
+                }
+            });
+            await CreateEventIfNotExists(new Event
+            {
+                Title = "Information front: about the post-truth era",
+                Description = "Ostroh Academy National University, within the framework of the Humanitarian Support Fund of Ukrainian Universities, is implementing a free training course \"University Support Community\", which is a continuation and expansion of the project \"Psychological Support for Teachers and Tutors\" launched in March this year.",
+                ShortDesc = "Very short description for information front",
+                EventLink = "https://docs.google.com/document/d/1X7SwM3uUyATgTzd6XIfqop1moM26FsjXfiMxfZqQCZA",
+                StartAt = new DateTime(2022, 05, 26, 12, 30, 00),
+                EventCategories = new List<EventCategory>
+                {
+                    new EventCategory
+                    {
+                        Category = categoryUniversal
+                    }
+                }
+            });
 
             await CreateEventIfNotExists(new Event
             {
