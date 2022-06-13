@@ -13,5 +13,6 @@
         public const string GetCategories = "get-categories";
         public const string GetSubscriptionForCategory = "get-sub-for-category";
         public const string GetUnsubscribeFromCategory = "get-unsub-for-category";
+        public const string GetNotifications = "get-notifications";
     }
 }

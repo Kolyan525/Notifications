@@ -64,21 +64,7 @@ namespace Notifications.Api
                 options.ClientSecret = "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";
             });
 
-            services.AddSingleton<TelegramBot>();
-            services.AddScoped<ICommandExecutor, CommandExecutor>();
-            services.AddScoped<IUserService, UserService>();
-            services.AddScoped<IPaginationService, PaginationService>();
-            services.AddScoped<BaseCommand, StartCommand>();
-            services.AddScoped<BaseCommand, BL.Commands.Event>();
-            services.AddScoped<BaseCommand, GetEvent>();
-            services.AddScoped<BaseCommand, Help>();
-            services.AddScoped<BaseCommand, GetEvents>();
-            services.AddScoped<BaseCommand, GetSubscriptionEvents>();
-            services.AddScoped<BaseCommand, GetSubscription>();
-            services.AddScoped<BaseCommand, GetUnsubscribe>();
-            services.AddScoped<BaseCommand, GetCategories>();
-            services.AddScoped<BaseCommand, GetSubscriptionCategory>();
-            services.AddScoped<BaseCommand, GetUnsubscribeCategory>();
+            services.ConfigureTelegramBot();
 
             services.ConfigureIdentity();
             services.ConfigureJWT(Configuration);
@@ -105,41 +91,41 @@ namespace Notifications.Api
             //    options.JsonSerializerOptions.Converters.Add(new DateTimeConverter());
             //});
 
-            //services.AddSwaggerGen(c =>
-            //{
-            //    c.SwaggerDoc("v1", new OpenApiInfo { Title = "NotificationsApi", Version = "v1" });
-            //    c.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
-            //    c.AddSecurityDefinition("Bearer",
-            //          new OpenApiSecurityScheme
-            //          {
-            //              Description =
-            //              //"JWT Authorization header using the Bearer scheme. \r\n\r\n Enter 'Bearer' [space] and then your token in the text input below.\r\n\r\nExample: \"Bearer 12345abcdef\"",
-            //              "Put **_ONLY_** your JWT Bearer token on textbox below!",
-            //              Name = "Authorization",
-            //              In = ParameterLocation.Header,
-            //              //Type = SecuritySchemeType.ApiKey,
-            //              Type = SecuritySchemeType.Http,
-            //              Scheme = "Bearer"
-            //          });
-            //      c.AddSecurityRequirement(new OpenApiSecurityRequirement()
-            //      {
-            //          {
-            //              new OpenApiSecurityScheme
-            //              {
-            //                  Reference = new OpenApiReference
-            //                  {
-            //                      Type = ReferenceType.SecurityScheme,
-            //                      Id = "Bearer"
-            //                  },
-            //                  Scheme = "oauth2",
-            //                  Name = "Bearer",
-            //                  In = ParameterLocation.Header,
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "NotificationsApi", Version = "v1" });
+                c.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
+                c.AddSecurityDefinition("Bearer",
+                      new OpenApiSecurityScheme
+                      {
+                          Description =
+                          //"JWT Authorization header using the Bearer scheme. \r\n\r\n Enter 'Bearer' [space] and then your token in the text input below.\r\n\r\nExample: \"Bearer 12345abcdef\"",
+                          "Put **_ONLY_** your JWT Bearer token on textbox below!",
+                          Name = "Authorization",
+                          In = ParameterLocation.Header,
+                          //Type = SecuritySchemeType.ApiKey,
+                          Type = SecuritySchemeType.Http,
+                          Scheme = "Bearer"
+                      });
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement()
+                  {
+                      {
+                          new OpenApiSecurityScheme
+                          {
+                              Reference = new OpenApiReference
+                              {
+                                  Type = ReferenceType.SecurityScheme,
+                                  Id = "Bearer"
+                              },
+                              Scheme = "oauth2",
+                              Name = "Bearer",
+                              In = ParameterLocation.Header,
 
-            //              },
-            //              new List<string>()
-            //          }
-            //      });
-            //});
+                          },
+                          new List<string>()
+                      }
+                  });
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -151,11 +137,11 @@ namespace Notifications.Api
 
                 //app.UseSwagger();
                 //app.UseSwagger(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "NotificationsDAL v1"));
-                //app.UseSwagger();
-                //app.UseSwaggerUI(c =>
-                //{
-                //    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Notifications API V1");
-                //});
+                app.UseSwagger();
+                app.UseSwaggerUI(c =>
+                {
+                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Notifications API V1");
+                });
             }
 
             //app.UseHttpsRedirection();

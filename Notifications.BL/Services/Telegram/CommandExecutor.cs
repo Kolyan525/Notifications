@@ -18,12 +18,14 @@ namespace Notifications.BL.Services.Telegram
         private BaseCommand _lastCommand;
         private readonly NotificationsContext _context;
         private readonly TelegramBotClient _botClient;
+        private readonly ICacheService cacheService;
 
-        public CommandExecutor(IServiceProvider serviceProvider, NotificationsContext context, TelegramBot telegramBot)
+        public CommandExecutor(IServiceProvider serviceProvider, NotificationsContext context, TelegramBot telegramBot, ICacheService cacheService)
         {
             _commands = serviceProvider.GetServices<BaseCommand>().ToList();
             _context = context;
             _botClient = _botClient = telegramBot.GetBot().Result;
+            this.cacheService = cacheService;
         }
 
         public async Task Execute(Update update)
@@ -96,6 +98,18 @@ namespace Notifications.BL.Services.Telegram
                     case "PreviousCategoryEventsWithNextCategories":
                         await ExecuteCommand(CommandNames.GetCategories, update);
                         return;
+                    case "Week":
+                        await ExecuteCommand(CommandNames.GetNotifications, update);
+                        return;
+                    case "Day":
+                        await ExecuteCommand(CommandNames.GetNotifications, update);
+                        return;
+                    case "Hour":
+                        await ExecuteCommand(CommandNames.GetNotifications, update);
+                        return;
+                    case "Other":
+                        await ExecuteCommand(CommandNames.GetNotifications, update);
+                        return;
                 }
             }
 
@@ -113,6 +127,13 @@ namespace Notifications.BL.Services.Telegram
                     await ExecuteCommand(CommandNames.GetEvent, update);
                     return;
                 }
+            }
+
+            var check = cacheService.CheckActiveCacheEvent().Result;
+            if (check == true)
+            {
+                await ExecuteCommand(CommandNames.GetNotifications, update);
+                return;
             }
             else
             {

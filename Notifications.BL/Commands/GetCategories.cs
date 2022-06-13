@@ -536,7 +536,7 @@ namespace Notifications.BL.Commands
                                 lastButtons = true; mediumButtons = false;
                         }
 
-                        eventsOfCategory += @event.Title + ".";
+                        eventsOfCategory += @event.Title;
                         break;
                     }
 
@@ -549,7 +549,7 @@ namespace Notifications.BL.Commands
                             lastButtons = true; mediumButtons = false;
                     }
 
-                    eventsOfCategory += @event.Title + ".\n";
+                    eventsOfCategory += @event.Title + "\n";
                     i++;
                 }
                 if (@event.Title == eventTitleForCheck)
@@ -609,7 +609,7 @@ namespace Notifications.BL.Commands
                         if (EventCategoriesList[currentEventCategory] == EventCategoriesList.First())
                         { firstButtons = true; mediumButtons = false; }
 
-                        eventsOfCategoryList.Add(@event.Title + ".");
+                        eventsOfCategoryList.Add(@event.Title);
                         break;
                     }
 
@@ -622,7 +622,7 @@ namespace Notifications.BL.Commands
                             lastButtons = true; mediumButtons = false;
                     }
 
-                    eventsOfCategoryList.Add(@event.Title + ".");
+                    eventsOfCategoryList.Add(@event.Title);
                     i++;
                 }
                 if (@event.Title == eventTitleForCheck)
@@ -663,13 +663,13 @@ namespace Notifications.BL.Commands
                     {
                         if (i == 2 && eventCategory != EventCategoriesList.Last())
                         {
-                            eventsOfCategory += @event.Title + ".";
+                            eventsOfCategory += @event.Title;
                             break;
                         }
                         if (eventCategory == EventCategoriesList.Last())
                             lastEvent = true;
 
-                        eventsOfCategory += @event.Title + ".\n";
+                        eventsOfCategory += @event.Title + "\n";
                     }
                     i++;
                 }

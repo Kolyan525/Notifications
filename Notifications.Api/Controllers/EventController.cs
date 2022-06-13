@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using System.Linq;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -118,7 +119,7 @@ namespace Notifications.Api.Controllers
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
 
         // TODO: check the data in the event, cause i'm updating by id, not checking if data itself match
-        public async Task<IActionResult> UpdateEvent(long EventId, UpdateEventDTO eventDTO)
+        public async Task<IActionResult> UpdateEvent(long EventId, EventWithCategoriesDTO eventDTO)
         {
             if (!ModelState.IsValid || EventId < 1)
             {
@@ -128,18 +129,34 @@ namespace Notifications.Api.Controllers
 
             try
             {
-                var @event = await unitOfWork.Events.Get(e => e.EventId == EventId);
+                //var @event = await unitOfWork.Events.Get(e => e.EventId == EventId);
+                var @event = await unitOfWork.Events.GetFirstOrDefault(x => x.EventId == EventId,
+                    include: x => x
+                        .Include(x => x.EventCategories)
+                            .ThenInclude(ec => ec.Category));
+
                 if (@event == null)
                 {
                     logger.LogError($"Invalid UPDATE attempt in {nameof(UpdateEvent)}");
                     return BadRequest("Submitted data is invalid");
                 }
 
-                mapper.Map(eventDTO, @event);
-                unitOfWork.Events.Update(@event); // tracking question?
+                eventDTO.EventCategories = @event.EventCategories;
+                eventDTO.SubscriptionEvents = @event.SubscriptionEvents;
+
+                //mapper.Map(eventDTO, @event);
+                var result = await notificationsService.UpdateEventCategories(EventId, eventDTO.CategoryIds, eventDTO);
+
+                //unitOfWork.Events.Update(result);
                 await unitOfWork.Save();
 
-                return NoContent();
+                //var result = await notificationsService.AddCategoriesToEvent(EventId, eventDTO.CategoryIds);
+
+                //mapper.Map(eventDTO, result.ToResult());
+                //unitOfWork.Events.Update(result.ToResult()); // tracking question?
+                //await unitOfWork.Save();
+
+                return result.ToResult();
             }
             catch (Exception ex)
             {
@@ -453,6 +470,93 @@ namespace Notifications.Api.Controllers
             {
                 logger.LogError(ex, $"Something went wrong in the {nameof(CreateEventWithCategories)}");
                 return StatusCode(500, "Internal Server Error. Please try again later.");
+            }
+        }
+
+        [HttpGet("GetClosestEvents/{days:int}", Name = "GetClosestEvents")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetClosestEvents(int days)
+        {
+            try
+            {
+                var today = DateTime.UtcNow.ToLocalTime();
+                var upperBoundary = today.AddDays(days);
+
+                var events = await unitOfWork.Events.GetAllHere(
+                    include: x => x
+                        .Include(x => x.EventCategories)
+                        .ThenInclude(ec => ec.Category),
+                    predicate: x => x.StartAt >= today && x.StartAt <= upperBoundary);
+
+
+                var results = mapper.Map<IList<EventDTO>>(events);
+                logger.LogInformation($"Successfully executed {nameof(GetEvents)}");
+                return Ok(results);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, $"Something went wrong in the {nameof(GetEvents)}");
+                return StatusCode(500, "Internal Server Error. Please Try Again Later.");
+            }
+        }
+
+        [HttpGet("GetFilteredEvents", Name = "GetFilteredEvents")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        // по категоріям, по даті, по ціні і все? 
+        public async Task<ActionResult<IEnumerable<Event>>> GetFilteredEvents(string sort_by, string sort_type, string s, int page, int page_size)
+        {
+            try
+            {
+                var events = await unitOfWork.Events.GetAll();
+                IQueryable<Event> query = events.AsQueryable();
+                switch (sort_by)
+                {
+                    case "date":
+                        if (sort_type == "asc")
+                        {
+                            query = query.OrderBy(c => c.StartAt);
+                        }
+                        else
+                        {
+                            query = query.OrderByDescending(c => c.StartAt);
+                        }
+
+                        break;
+                    case "price":
+                        if (sort_type == "asc")
+                        {
+                            query = query.OrderBy(c => c.Price);
+                        }
+                        else
+                        {
+                            //query = query.OrderByDescending(c => c.surname);
+                        }
+                        break;
+                    //do more
+                    //case "category":
+                    //    if (sort_type == )
+
+
+                }
+                //your search 
+                //if (!string.IsNullOrEmpty(s))
+                //{
+
+                //    query = query.Where(c => c.name.Contains(s));
+                //}
+
+                var results = mapper.Map<IList<EventDTO>>(events);
+                logger.LogInformation($"Successfully executed {nameof(GetEvents)}");
+
+                //return await query.Skip((page - 1) * page_size).Take(page_size).ToListAsync();
+                return Ok(results);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, $"Something went wrong in the {nameof(GetEvents)}");
+                return StatusCode(500, "Internal Server Error. Please Try Again Later.");
             }
         }
     }

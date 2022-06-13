@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using Notifications.BL.Commands;
+using Notifications.BL.Services.Telegram;
 using Notifications.DAL.Models;
 using System;
 using System.Text;
@@ -54,6 +56,26 @@ namespace Notifications.Api
                 op.SaveToken = true;
                 op.TokenValidationParameters = tokenValidationParameters;
             });
+        }
+
+        public static void ConfigureTelegramBot(this IServiceCollection services)
+        {
+            services.AddSingleton<TelegramBot>();
+            services.AddScoped<ICommandExecutor, CommandExecutor>();
+            services.AddScoped<IUserService, UserService>();
+            services.AddScoped<ICacheService, CacheService>();
+            services.AddScoped<BaseCommand, StartCommand>();
+            services.AddScoped<BaseCommand, BL.Commands.Event>();
+            services.AddScoped<BaseCommand, GetEvent>();
+            services.AddScoped<BaseCommand, Help>();
+            services.AddScoped<BaseCommand, GetEvents>();
+            services.AddScoped<BaseCommand, GetSubscriptionEvents>();
+            services.AddScoped<BaseCommand, GetSubscription>();
+            services.AddScoped<BaseCommand, GetUnsubscribe>();
+            services.AddScoped<BaseCommand, GetCategories>();
+            services.AddScoped<BaseCommand, GetSubscriptionCategory>();
+            services.AddScoped<BaseCommand, GetUnsubscribeCategory>();
+            services.AddScoped<BaseCommand, GetNotifications>();
         }
     }
 }

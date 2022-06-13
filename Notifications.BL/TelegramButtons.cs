@@ -275,7 +275,22 @@ namespace Notifications.BL
                     }
             });
         }
-
+        public class GetSubscription
+        {
+            public static InlineKeyboardMarkup Buttons = new(new[]
+            {
+                    new InlineKeyboardButton[]
+                    {
+                        InlineKeyboardButton.WithCallbackData(text: "За тиждень до початку", callbackData: "Week"),
+                        InlineKeyboardButton.WithCallbackData(text: "За день до початку", callbackData: "Day")
+                    },
+                    new InlineKeyboardButton[]
+                    {
+                        InlineKeyboardButton.WithCallbackData(text: "За годину до початку", callbackData: "Hour"),
+                        InlineKeyboardButton.WithCallbackData(text: "Обрати свій варіант", callbackData: "Other")
+                    }
+            });
+        }
         public class GetSubscriptionEvents
         {
             public static InlineKeyboardMarkup Detail = new(new[]

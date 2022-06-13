@@ -7,6 +7,8 @@ using Notifications.BL.Services.Telegram;
 using Notifications.DAL.Models;
 using Notifications.BL.IRepository;
 using Notifications.BL.Services;
+using Hangfire;
+using System;
 
 namespace Notifications.BL.Commands
 {
@@ -34,7 +36,9 @@ namespace Notifications.BL.Commands
             var user = await _userService.GetOrCreate(update);
             var id = user.ChatId;
             var data = update.CallbackQuery.Data;
+            DAL.Models.Event @event = null;
             var InlineKeyboardText = returnText(update.CallbackQuery.Message.Text);
+            var buttons = TelegramButtons.GetSubscription.Buttons;
 
             var EventList = await unitOfWork.Events.GetAll();
             if (EventList.Any())
@@ -44,10 +48,12 @@ namespace Notifications.BL.Commands
                     if (item.Title == InlineKeyboardText)
                     {
                         var check = notificationsService.SubscriptionExists(item.EventId, id.ToString()).Result;
+                        @event = item;
                         if (check == false)
                         {
                             await notificationsService.SubscribeToEvent(item.EventId, id.ToString());
-                            await _botClient.SendTextMessageAsync(id, "Ви успішно підписалися на подію: '" + InlineKeyboardText + "'");
+                            await _botClient.SendTextMessageAsync(id, "Ви успішно підписалися на подію: \"" + InlineKeyboardText + "\"");
+                            await _botClient.SendTextMessageAsync(id, "Виберіть час, коли ви хотіли б отримувати сповіщення про початок події \"" + item.Title + "\"", replyMarkup: buttons);
                         }
                         else if (check == true)
                         {
@@ -62,10 +68,10 @@ namespace Notifications.BL.Commands
                 return;
             }
         }
-        private static string returnText (string updateText)
+        private static string returnText(string updateText)
         {
             string text = null;
-            foreach(char i in updateText)
+            foreach (char i in updateText)
             {
                 if (i == '\n')
                     return text;

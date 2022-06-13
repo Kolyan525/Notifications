@@ -20,9 +20,9 @@ namespace Notifications.BL.Commands
         private readonly IUserService _userService;
         readonly IUnitOfWork unitOfWork;
         readonly NotificationsService notificationsService;
-        readonly IPaginationService paginationService;
+        readonly ICacheService paginationService;
 
-        public GetEvent(TelegramBot telegramBot, NotificationsContext context, IUserService userService, IUnitOfWork unitOfWork, NotificationsService notificationsService, IPaginationService paginationService)
+        public GetEvent(TelegramBot telegramBot, NotificationsContext context, IUserService userService, IUnitOfWork unitOfWork, NotificationsService notificationsService, ICacheService paginationService)
         {
             _context = context;
             _userService = userService;
@@ -42,7 +42,7 @@ namespace Notifications.BL.Commands
             string text = string.Empty;
             string category = string.Empty;
             int k = 0, i = 0;
-            
+
             if (EventList.Any())
             {
                 var inlineKeyboardSubscription = TelegramButtons.GetEvent.Subscription;
@@ -70,11 +70,11 @@ namespace Notifications.BL.Commands
                                 {
                                     bool check = false;
                                     var response = $"<u><b>{item.Title}</b></u>\n\n<b>Опис події:</b> {item.Description}.";
-                                    if(item.EventLink != string.Empty)
+                                    if (item.EventLink != string.Empty)
                                         response += $"\n\n<b>Посилання:</b> {item.EventLink}";
-                                    if(item.Location != string.Empty)
+                                    if (item.Location != string.Empty)
                                         response += $"\n\n<b>Місце проведення:</b> {item.Location}";
-                                    if(item.Price > 0)
+                                    if (item.Price > 0)
                                         response += $"\n\n<b>Ціна:</b> {item.Price}";
                                     response += $"\n\n<b>Початок:</b> {item.StartAt}";
 
@@ -85,17 +85,17 @@ namespace Notifications.BL.Commands
                                             check = notificationsService.SubscriptionExists(item.EventId, id.ToString()).Result;
                                             if (check == true)
                                             {
-                                                if(i == 1 && item != list.Last())
+                                                if (i == 1 && item != list.Last())
                                                 {
                                                     await _botClient.SendTextMessageAsync(id, response, replyMarkup: buttonsWithUnsubscribe, parseMode: ParseMode.Html);
                                                     await changeDatabase();
                                                     return;
                                                 }
-                                                else if(item == list.Last())
+                                                else if (item == list.Last())
                                                 {
                                                     await _botClient.SendTextMessageAsync(id, response, replyMarkup: inlineKeyboardUnsubscribe, parseMode: ParseMode.Html);
                                                     await changeDatabase();
-                                                    await paginationService.ClearCache();
+                                                    await paginationService.ClearPaginationListCache();
                                                     return;
                                                 }
                                                 await _botClient.SendTextMessageAsync(id, response, replyMarkup: inlineKeyboardUnsubscribe, parseMode: ParseMode.Html);
@@ -114,7 +114,7 @@ namespace Notifications.BL.Commands
                                             {
                                                 await _botClient.SendTextMessageAsync(id, response, replyMarkup: inlineKeyboardSubscription, parseMode: ParseMode.Html);
                                                 await changeDatabase();
-                                                await paginationService.ClearCache();
+                                                await paginationService.ClearPaginationListCache();
                                                 return;
                                             }
                                             await _botClient.SendTextMessageAsync(id, response, replyMarkup: inlineKeyboardSubscription, parseMode: ParseMode.Html);
@@ -130,7 +130,7 @@ namespace Notifications.BL.Commands
                         }
                     }
                 }
-                else if(update.Type == UpdateType.Message)
+                else if (update.Type == UpdateType.Message)
                 {
                     text = update.Message.Text;
                 }
@@ -141,63 +141,98 @@ namespace Notifications.BL.Commands
 
                 var reslut = await notificationsService.SearchEvents(text);
                 var events = reslut.Data;
-                
+
                 if (events.Any())
                 {
-                    paginationService.SetPaginationList(events);
-                    foreach (var item in events)
+                    if (events.Count == 1)
                     {
-                        bool check = false;
-                        var response = $"<u><b>{item.Title}</b></u>\n\n<b>Опис події:</b> {item.Description}.";
-                        if (item.EventLink != string.Empty)
-                            response += $"\n\n<b>Посилання:</b> {item.EventLink}";
-                        if (item.Location != string.Empty)
-                            response += $"\n\n<b>Місце проведення:</b> {item.Location}";
-                        if (item.Price > 0)
-                            response += $"\n\n<b>Ціна:</b> {item.Price}";
-                        response += $"\n\n<b>Початок:</b> {item.StartAt}";
-
-                        if (_context.SubscriptionEvents.Any())
+                        foreach (var item in events)
                         {
-                            check = notificationsService.SubscriptionExists(item.EventId, id.ToString()).Result;
-                            if (check == true)
+                            bool check = false;
+                            var response = $"<u><b>{item.Title}</b></u>\n\n<b>Опис події:</b> {item.Description}.";
+                            if (item.EventLink != string.Empty)
+                                response += $"\n\n<b>Посилання:</b> {item.EventLink}";
+                            if (item.Location != string.Empty)
+                                response += $"\n\n<b>Місце проведення:</b> {item.Location}";
+                            if (item.Price > 0)
+                                response += $"\n\n<b>Ціна:</b> {item.Price}";
+                            response += $"\n\n<b>Початок:</b> {item.StartAt}";
+
+                            if (_context.SubscriptionEvents.Any())
+                            {
+                                check = notificationsService.SubscriptionExists(item.EventId, id.ToString()).Result;
+                                if (check == true)
+                                {
+                                    await _botClient.SendTextMessageAsync(id, response, replyMarkup: inlineKeyboardUnsubscribe, parseMode: ParseMode.Html);
+                                    await changeDatabase();
+                                    return;
+                                }
+                            }
+                            if (check == false)
+                            {
+                                await _botClient.SendTextMessageAsync(id, response, replyMarkup: inlineKeyboardSubscription, parseMode: ParseMode.Html);
+                                await changeDatabase();
+                                return;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        paginationService.SetPaginationList(events);
+                        foreach (var item in events)
+                        {
+                            bool check = false;
+                            var response = $"<u><b>{item.Title}</b></u>\n\n<b>Опис події:</b> {item.Description}.";
+                            if (item.EventLink != string.Empty)
+                                response += $"\n\n<b>Посилання:</b> {item.EventLink}";
+                            if (item.Location != string.Empty)
+                                response += $"\n\n<b>Місце проведення:</b> {item.Location}";
+                            if (item.Price > 0)
+                                response += $"\n\n<b>Ціна:</b> {item.Price}";
+                            response += $"\n\n<b>Початок:</b> {item.StartAt}";
+
+                            if (_context.SubscriptionEvents.Any())
+                            {
+                                check = notificationsService.SubscriptionExists(item.EventId, id.ToString()).Result;
+                                if (check == true)
+                                {
+                                    if (i == 1 && item != events.Last())
+                                    {
+                                        await _botClient.SendTextMessageAsync(id, response, replyMarkup: buttonsWithUnsubscribe, parseMode: ParseMode.Html);
+                                        await changeDatabase();
+                                        return;
+                                    }
+                                    else if (item == events.Last())
+                                    {
+                                        await _botClient.SendTextMessageAsync(id, response, replyMarkup: inlineKeyboardUnsubscribe, parseMode: ParseMode.Html);
+                                        await changeDatabase();
+                                        await paginationService.ClearPaginationListCache();
+                                        return;
+                                    }
+                                    await _botClient.SendTextMessageAsync(id, response, replyMarkup: inlineKeyboardUnsubscribe, parseMode: ParseMode.Html);
+                                    await changeDatabase();
+                                }
+                            }
+                            if (check == false)
                             {
                                 if (i == 1 && item != events.Last())
                                 {
-                                    await _botClient.SendTextMessageAsync(id, response, replyMarkup: buttonsWithUnsubscribe, parseMode: ParseMode.Html);
+                                    await _botClient.SendTextMessageAsync(id, response, replyMarkup: buttonsWithSubscription, parseMode: ParseMode.Html);
                                     await changeDatabase();
                                     return;
                                 }
                                 else if (item == events.Last())
                                 {
-                                    await _botClient.SendTextMessageAsync(id, response, replyMarkup: inlineKeyboardUnsubscribe, parseMode: ParseMode.Html);
+                                    await _botClient.SendTextMessageAsync(id, response, replyMarkup: inlineKeyboardSubscription, parseMode: ParseMode.Html);
                                     await changeDatabase();
-                                    await paginationService.ClearCache();
+                                    await paginationService.ClearPaginationListCache();
                                     return;
                                 }
-                                await _botClient.SendTextMessageAsync(id, response, replyMarkup: inlineKeyboardUnsubscribe, parseMode: ParseMode.Html);
-                                await changeDatabase();
-                            }
-                        }
-                        if (check == false)
-                        {
-                            if (i == 1 && item != events.Last())
-                            {
-                                await _botClient.SendTextMessageAsync(id, response, replyMarkup: buttonsWithSubscription, parseMode: ParseMode.Html);
-                                await changeDatabase();
-                                return;
-                            }
-                            else if (item == events.Last())
-                            {
                                 await _botClient.SendTextMessageAsync(id, response, replyMarkup: inlineKeyboardSubscription, parseMode: ParseMode.Html);
                                 await changeDatabase();
-                                await paginationService.ClearCache();
-                                return;
                             }
-                            await _botClient.SendTextMessageAsync(id, response, replyMarkup: inlineKeyboardSubscription, parseMode: ParseMode.Html);
-                            await changeDatabase();
+                            i++;
                         }
-                        i++;
                     }
                     return;
                 }

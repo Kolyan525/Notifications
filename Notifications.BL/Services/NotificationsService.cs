@@ -1,15 +1,19 @@
-﻿using Hangfire;
+﻿using AutoMapper;
+using Hangfire;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Notifications.BL.IRepository;
 using Notifications.BL.Services.Telegram;
 using Notifications.DAL.Models;
+using Notifications.DTO.DTOs;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Telegram.Bot;
+using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
 namespace Notifications.BL.Services
@@ -18,6 +22,7 @@ namespace Notifications.BL.Services
     {
         readonly IUnitOfWork unitOfWork;
         private readonly TelegramBotClient botClient;
+        readonly IMapper mapper;
 
         public NotificationsService(IUnitOfWork unitOfWork, TelegramBot bot)
         {
@@ -124,6 +129,34 @@ namespace Notifications.BL.Services
             return ApiResponse.Ok(@event);
         }
 
+        public async Task<IApiResponse> RemoveCategoryFromEvent(long eventId, long categoryId)
+        {
+            var cat = await unitOfWork.Categories.Get(x => x.CategoryId == categoryId);
+            if (cat == null) return ApiResponse.NotFound("Category was not found");
+
+            var @event = await unitOfWork.Events.Get(x => x.EventId == eventId, new List<string> { "EventCategories" });
+            if (@event == null) return ApiResponse.NotFound("Event was not found");
+
+            // Check if EC already exists within event
+            //var ch = @event.EventCategories.FirstOrDefault(x => x.CategoryId == cat.CategoryId && x.Event.Title == @event.Title);
+            //if (ch == null)
+            //    return ApiResponse.Conflict("This category haven`t been assigned to the event");
+
+            var ec = await unitOfWork.EventCategories.GetFirstOrDefault(x => x.EventId == eventId, x => x.CategoryId == categoryId);
+
+            if (ec == null)
+            {
+                return ApiResponse.NotFound("Event category was not found");
+            }
+
+            await unitOfWork.EventCategories.Delete(ec.EventCategoryId);
+            @event.EventCategories.Remove(ec);
+            //unitOfWork.Events.Update(@event);
+            await unitOfWork.Save();
+
+            return ApiResponse.Ok(@event);
+        }
+
         public async Task<IApiResponse> AddCategoriesToEvent(long eventId, List<long> categories)
         {
             if (eventId > 0 || categories != null)
@@ -138,6 +171,69 @@ namespace Notifications.BL.Services
                 {
                     await AddCategoryToEvent(@event.EventId, item);
                 }
+
+                return ApiResponse.Ok(@event);
+            }
+            else return ApiResponse.BadRequest();
+        }
+
+        public async Task<IApiResponse> RemoveCategoriesFromEvent(long eventId, List<long> categories)
+        {
+            if (eventId > 0 || categories != null)
+            {
+                var @event = await unitOfWork.Events.GetFirstOrDefault(
+                    e => e.EventId == eventId,
+                    include: e => e
+                        .Include(e => e.EventCategories)
+                            .ThenInclude(ec => ec.Category));
+
+                foreach (var item in categories)
+                {
+                    await RemoveCategoryFromEvent(@event.EventId, item);
+                }
+
+                return ApiResponse.Ok(@event);
+            }
+            else return ApiResponse.BadRequest();
+        }
+
+        public async Task<IApiResponse> UpdateEventCategories(long eventId, List<long> categories, EventWithCategoriesDTO eventDTO)
+        {
+            if (eventId > 0 || categories != null)
+            {
+                var @event = await unitOfWork.Events.GetFirstOrDefault(
+                    e => e.EventId == eventId,
+                    include: e => e
+                        .Include(e => e.EventCategories)
+                            .ThenInclude(ec => ec.Category));
+
+                @event.Title = @eventDTO.Title;
+                @event.Description = @eventDTO.Description;
+                @event.ShortDesc = @eventDTO.ShortDesc;
+                @event.StartAt = @eventDTO.StartAt;
+                @event.EventLink = @eventDTO.EventLink;
+                @event.Location = @eventDTO.Location;
+                @event.Price = eventDTO.Price;
+
+                var categs = new List<long>();
+                foreach (var item in @event.EventCategories)
+                {
+                    categs.Add(item.CategoryId);
+                }
+
+                await RemoveCategoriesFromEvent(@event.EventId, categs);
+
+                //unitOfWork.Events.Update(@event);
+                //var result = await AddCategoriesToEvent(@event.EventId, categories);
+
+                foreach (var category in categories)
+                {
+                    @event.EventCategories.Add(new EventCategory { CategoryId = category });
+                }
+
+                unitOfWork.Events.Update(@event);
+
+                await unitOfWork.Save();
 
                 return ApiResponse.Ok(@event);
             }
@@ -183,14 +279,6 @@ namespace Notifications.BL.Services
             sub.NotificationTypeSubscriptionId = ntsub.NotificaitonTypeSubscriptionId;
 
             await unitOfWork.Save();
-
-            var @event = await unitOfWork.Events.Get(x => x.EventId == eventId);
-
-            var timeToEvent = @event.StartAt.ToLocalTime().Subtract(TimeSpan.FromMinutes(1));
-
-            BackgroundJob.Schedule(
-                () => NotifyUser(@event, userId),
-                timeToEvent);
 
             return ApiResponse.Ok("Succesfully subscribed!");
         }
@@ -467,6 +555,15 @@ namespace Notifications.BL.Services
                     }
                 }
             }
+        }
+
+        public async Task ScheduleNotification(Event @event, string userId)
+        {
+            var timeToEvent = @event.StartAt.ToLocalTime().Subtract(TimeSpan.FromMinutes(1));
+
+            BackgroundJob.Schedule(
+                () => NotifyUser(@event, userId),
+                timeToEvent);
         }
 
         public async Task NotifyUser(Event @event, string userName)

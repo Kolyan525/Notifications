@@ -57,7 +57,7 @@ namespace Notifications.BL.Commands
                         if (ch == '\n')
                         {
                             bool chek = EventList.FirstOrDefault(x => x.Title == text).Title == text;
-                            if(chek == true)
+                            if (chek == true)
                                 break;
                         }
                         text += ch;
@@ -65,9 +65,9 @@ namespace Notifications.BL.Commands
                     var lastEvent = EventList.FirstOrDefault(e => e.Title == text);
                     List<DAL.Models.Event> NewEventList = new List<DAL.Models.Event>();
                     int k = 0;
-                    foreach(var e in EventList)
+                    foreach (var e in EventList)
                     {
-                        if(k > 0)
+                        if (k > 0)
                         {
                             NewEventList.Add(e);
                         }
