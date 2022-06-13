@@ -203,7 +203,7 @@ namespace Notifications.BL.Commands
                         BackgroundJob.Schedule(
                             () => notificationsService.NotifyUser(@event, id.ToString()),
                             time);
-                        await _botClient.SendTextMessageAsync(id, $"Чудово! Тепер ви отримаєте нагадування про подію \"{@event.Title}\" ({time}).\nПримітка: Сповіщення здійснюватимуться за Києвським часом!");
+                        await _botClient.SendTextMessageAsync(id, $"Чудово! Тепер ви отримаєте нагадування про подію \"{@event.Title}\" ({time}).\nПримітка: Сповіщення здійснюватимуться за Київським часом!");
                         await cacheService.ClearActiveCacheEventCache();
                         await cacheService.ClearEventFromCache();
                     }
@@ -245,7 +245,7 @@ namespace Notifications.BL.Commands
                                                     () => notificationsService.NotifyUser(item, id.ToString()),
                                                     timeToEvent);
 
-                                                await _botClient.SendTextMessageAsync(id, $"Чудово! Тепер ви отримаєте нагадування про подію за тиждень ({timeToEvent}) до її початку!\nПримітка: Сповіщення здійснюватимуться за Києвським часом!");
+                                                await _botClient.SendTextMessageAsync(id, $"Чудово! Тепер ви отримаєте нагадування про подію за тиждень ({timeToEvent}) до її початку!\nПримітка: Сповіщення здійснюватимуться за Київським часом!");
                                                 return;
                                             }
                                         case "Day":
@@ -262,7 +262,7 @@ namespace Notifications.BL.Commands
                                                     () => notificationsService.NotifyUser(item, id.ToString()),
                                                     timeToEvent);
 
-                                                await _botClient.SendTextMessageAsync(id, $"Чудово! Тепер ви отримаєте нагадування про подію за день ({timeToEvent}) до її початку!\nПримітка: Сповіщення здійснюватимуться за Києвським часом!");
+                                                await _botClient.SendTextMessageAsync(id, $"Чудово! Тепер ви отримаєте нагадування про подію за день ({timeToEvent}) до її початку!\nПримітка: Сповіщення здійснюватимуться за Київським часом!");
                                                 return;
                                             }
                                         case "Hour":
@@ -271,7 +271,7 @@ namespace Notifications.BL.Commands
 
                                                 if (now > timeToEvent)
                                                 {
-                                                    await _botClient.SendTextMessageAsync(id, "Виберіть інший варіант отримання нагадувань, так як дана подія розпочнеться раніше за вказаний вами термін!\nПримітка: Сповіщення здійснюватимуться за Києвським часом!");
+                                                    await _botClient.SendTextMessageAsync(id, "Виберіть інший варіант отримання нагадувань, так як дана подія розпочнеться раніше за вказаний вами термін!\nПримітка: Сповіщення здійснюватимуться за Київським часом!");
                                                     return;
                                                 }
 
@@ -284,7 +284,7 @@ namespace Notifications.BL.Commands
                                             }
                                         case "Other":
                                             {
-                                                await _botClient.SendTextMessageAsync(id, "Вкажіть час у числовому форматі {рік, місяць, день, година, хвилина}, коли ви хотіли б отримувати сповіщення про початок події \"" + item.Title + "\". Наприклад: \"2022, 10, 12, 15, 30\".\nПримітка: Сповіщення здійснюватимуться за Києвським часом!");
+                                                await _botClient.SendTextMessageAsync(id, "Вкажіть час у числовому форматі {рік, місяць, день, година, хвилина}, коли ви хотіли б отримувати сповіщення про початок події \"" + item.Title + "\". Наприклад: \"2022, 10, 12, 15, 30\".\nПримітка: Сповіщення здійснюватимуться за Київським часом!");
                                                 cacheService.ActiveCacheEvent(item.EventId.ToString() + "Активовано");
                                                 cacheService.SetEventToCache(item.EventId.ToString() + "Кеш", item);
                                                 return;
