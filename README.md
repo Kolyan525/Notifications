@@ -29,7 +29,7 @@ ngrok http --host-header=localhost 60043
 
 Встановити потрібну назву для бази даних:
 ```
-"DefaultConnection": "Data Source=.\\SQLEXPRESS;Initial Catalog=НазваБД;Integrated Security=True;MultipleActiveResultSets=True;"
+"DefaultConnection": "Data Source=.\\SQLEXPRESS;Initial Catalog=**НазваБД**;Integrated Security=True;MultipleActiveResultSets=True;"
 ```
 
 Та в поле Url вставити раніше скопійовану адресу, вона повинна закінчуватись на "/":
