@@ -271,7 +271,7 @@ namespace Notifications.BL.Commands
 
                                                 if (now > timeToEvent)
                                                 {
-                                                    await _botClient.SendTextMessageAsync(id, "Виберіть інший варіант отримання нагадувань, так як дана подія розпочнеться раніше за вказаний вами термін!\nПримітка: Сповіщення здійснюватимуться за Київським часом!");
+                                                    await _botClient.SendTextMessageAsync(id, "Виберіть інший варіант отримання нагадувань, так як дана подія розпочнеться раніше за вказаний вами термін!");
                                                     return;
                                                 }
 
@@ -279,7 +279,7 @@ namespace Notifications.BL.Commands
                                                     () => notificationsService.NotifyUser(item, id.ToString()),
                                                     timeToEvent);
 
-                                                await _botClient.SendTextMessageAsync(id, $"Чудово! Тепер ви отримаєте нагадування про подію за годину ({timeToEvent}) до її початку!");
+                                                await _botClient.SendTextMessageAsync(id, $"Чудово! Тепер ви отримаєте нагадування про подію за годину ({timeToEvent}) до її початку!\nПримітка: Сповіщення здійснюватимуться за Київським часом!");
                                                 return;
                                             }
                                         case "Other":

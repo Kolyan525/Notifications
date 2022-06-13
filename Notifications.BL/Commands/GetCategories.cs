@@ -21,6 +21,7 @@ namespace Notifications.BL.Commands
         readonly IUnitOfWork unitOfWork;
         readonly NotificationsService notificationsService;
         List<bool> check = new List<bool>();
+        bool lastCategory = false;
         bool lastEvent = false;
         bool lastButtonsWithoutNextCategories = false;
         bool mediumButtonsWithoutNextCategories = true;
@@ -28,7 +29,7 @@ namespace Notifications.BL.Commands
         bool lastButtonsWithNextCategories = false;
         bool mediumButtonsWithNextCategories = true;
         bool firstButtonsWithNextCategories = false;
-        int i = 0, j = 0, t = 0;
+        int i = 0, j = 0; //t = 0;
         InlineKeyboardMarkup inlineKeyboardSubscription, inlineKeyboardUnsubscribe, inlineKeyboardNextEventsWithSubscription,
             inlineKeyboardNextEventsWithUnsubscribe, inlineKeyboardPreviousEventsWithSubscription, inlineKeyboardPreviousEventsWithUnsubscribe,
             buttonsWithSubscription, buttonsWithUnsubscribe, nextCategories, nextCategoriesWithSubscription, nextCategoriesWithUnsubscribe,
@@ -81,7 +82,7 @@ namespace Notifications.BL.Commands
                     foreach (var category in CategoryList)
                     {
                         await OutputCtegories(category, CategoryList, eventsOfCategory, AllEventCategoriesList, id, @event, AllEventList, message);
-                        if (t > 0)
+                        if (lastCategory == true)
                             return;
                     }
                 }
@@ -116,7 +117,7 @@ namespace Notifications.BL.Commands
                                 if (k > 0)
                                 {
                                     await OutputCtegories(category, CategoryList, eventsOfCategory, AllEventCategoriesList, id, @event, AllEventList, message);
-                                    if (t > 0)
+                                    if (lastCategory == true)
                                         return;
                                 }
                                 if (category.CategoryName == currentCategory.CategoryName)
@@ -287,7 +288,7 @@ namespace Notifications.BL.Commands
         public async Task OutputCtegories(Category category, IList<Category> CategoryList, string eventsOfCategory, IList<EventCategory> AllEventCategoriesList, long id,
             DAL.Models.Event @event, IList<DAL.Models.Event> AllEventList, string message)
         {
-            if (j == 0 && category != CategoryList.Last())
+            if (j == 4 && category != CategoryList.Last())
             {
                 i = 0;
                 eventsOfCategory = string.Empty;
@@ -348,7 +349,7 @@ namespace Notifications.BL.Commands
                 }
                 lastEvent = false;
                 check.Clear();
-                t++;
+                lastCategory = true;
                 return;
             }
 

@@ -38,7 +38,7 @@ namespace Notifications.BL.Commands
                 {
                     foreach (var Ev in EventList)
                     {
-                        if (i == 1 && Ev != EventList.Last())
+                        if (i == 2 && Ev != EventList.Last())
                         {
                             await _botClient.SendTextMessageAsync(id, $"<u><b>{Ev.Title}</b></u>\n\n{Ev.ShortDesc}.\n",
                             replyMarkup: buttons, parseMode: Telegram.Bot.Types.Enums.ParseMode.Html);
@@ -82,7 +82,7 @@ namespace Notifications.BL.Commands
                     {
                         foreach (var Ev in NewEventList)
                         {
-                            if (i == 1 && Ev != NewEventList.Last())
+                            if (i == 2 && Ev != NewEventList.Last())
                             {
                                 await _botClient.SendTextMessageAsync(id, $"<u><b>{Ev.Title}</b></u>\n\n{Ev.ShortDesc}.\n",
                                 replyMarkup: buttons, parseMode: Telegram.Bot.Types.Enums.ParseMode.Html);
