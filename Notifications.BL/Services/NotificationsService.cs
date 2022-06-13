@@ -572,8 +572,11 @@ namespace Notifications.BL.Services
             var message = $"<b>Скоро відбудеться подія на яку ви підписалися!</b>\n\n" +
                 $"<u><b>{@event.Title}</b></u>\n\n<b>Опис події:</b> {@event.Description}." +
                 $"\n\n<b>Початок: {@event.StartAt}</b>";
-            await botClient.SendTextMessageAsync(userName, message, parseMode: ParseMode.Html);
-            Console.WriteLine($"{userName}, has upcoming events - {@event.Title}|{@event.StartAt.ToUniversalTime()}");
+            if (await SubscriptionExists(@event.EventId, userName))
+            {
+                await botClient.SendTextMessageAsync(userName, message, parseMode: ParseMode.Html);
+                Console.WriteLine($"{userName}, has upcoming events - {@event.Title}|{@event.StartAt.ToUniversalTime()}");
+            }
         }
 
         public async Task<bool> SubscriptionExists(long eventId, string userId)

@@ -76,7 +76,7 @@ namespace Notifications.BL.Commands
                                         response += $"\n\n<b>Місце проведення:</b> {item.Location}";
                                     if (item.Price > 0)
                                         response += $"\n\n<b>Ціна:</b> {item.Price}";
-                                    response += $"\n\n<b>Початок:</b> {item.StartAt}";
+                                    response += $"\n\n<b>Початок:</b> {item.StartAt.ToLocalTime()}";
 
                                     if (k > 0)
                                     {
@@ -156,7 +156,7 @@ namespace Notifications.BL.Commands
                                 response += $"\n\n<b>Місце проведення:</b> {item.Location}";
                             if (item.Price > 0)
                                 response += $"\n\n<b>Ціна:</b> {item.Price}";
-                            response += $"\n\n<b>Початок:</b> {item.StartAt}";
+                            response += $"\n\n<b>Початок:</b> {item.StartAt.ToLocalTime()}";
 
                             if (_context.SubscriptionEvents.Any())
                             {
@@ -189,7 +189,7 @@ namespace Notifications.BL.Commands
                                 response += $"\n\n<b>Місце проведення:</b> {item.Location}";
                             if (item.Price > 0)
                                 response += $"\n\n<b>Ціна:</b> {item.Price}";
-                            response += $"\n\n<b>Початок:</b> {item.StartAt}";
+                            response += $"\n\n<b>Початок:</b> {item.StartAt.ToLocalTime()}";
 
                             if (_context.SubscriptionEvents.Any())
                             {

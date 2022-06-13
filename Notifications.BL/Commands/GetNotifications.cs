@@ -212,7 +212,7 @@ namespace Notifications.BL.Commands
                                                     () => notificationsService.NotifyUser(item, id.ToString()),
                                                     timeToEvent);
 
-                                                await _botClient.SendTextMessageAsync(id, $"Чудово! Тепер ви отримаєте нагадування про подію за тиждень ({timeToEvent} днів) до її початку! {item.StartAt.ToLocalTime()}");
+                                                await _botClient.SendTextMessageAsync(id, $"Чудово! Тепер ви отримаєте нагадування про подію за тиждень ({timeToEvent} днів) до її початку!");
                                                 return;
                                             }
                                         case "Day":
@@ -229,13 +229,12 @@ namespace Notifications.BL.Commands
                                                     () => notificationsService.NotifyUser(item, id.ToString()),
                                                     timeToEvent);
 
-                                                await _botClient.SendTextMessageAsync(id, $"Чудово! Тепер ви отримаєте нагадування про подію за день \"{timeToEvent}\" до її початку! {item.StartAt.ToLocalTime()}");
+                                                await _botClient.SendTextMessageAsync(id, $"Чудово! Тепер ви отримаєте нагадування про подію за день \"{timeToEvent}\" до її початку!");
                                                 return;
                                             }
                                         case "Hour":
                                             {
                                                 var timeToEvent = item.StartAt.ToLocalTime().Subtract(TimeSpan.FromHours(1));
-                                                var time = item.StartAt.ToLocalTime();
 
                                                 if (now > timeToEvent)
                                                 {
@@ -247,7 +246,7 @@ namespace Notifications.BL.Commands
                                                     () => notificationsService.NotifyUser(item, id.ToString()),
                                                     timeToEvent);
 
-                                                await _botClient.SendTextMessageAsync(id, $"Чудово! Тепер ви отримаєте нагадування про подію за годину \"{time}\" до її початку! {item.StartAt.ToLocalTime()}");
+                                                await _botClient.SendTextMessageAsync(id, $"Чудово! Тепер ви отримаєте нагадування про подію за годину \"{timeToEvent}\" до її початку!");
                                                 return;
                                             }
                                         case "Other":
