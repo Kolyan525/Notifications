@@ -110,6 +110,9 @@ namespace Notifications.BL.Services.Telegram
                     case "Other":
                         await ExecuteCommand(CommandNames.GetNotifications, update);
                         return;
+                    case "Notifications":
+                        await ExecuteCommand(CommandNames.GetSubscription, update);
+                        return;
                 }
             }
 

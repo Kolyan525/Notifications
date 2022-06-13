@@ -43,6 +43,7 @@ namespace Notifications.BL.Commands
             int year = 0, month = 0, day = 0, hour = 0, minute = 0, second = 0;
             string val = string.Empty;
             string InlineKeyboardText = string.Empty;
+            
             DateTime now = DateTime.Now;
             if (context.TelegramEvent.Any())
             {
@@ -76,8 +77,6 @@ namespace Notifications.BL.Commands
                             }
                             else if (InlineKeyboardText[i + 1] == ',' || !(int.TryParse(InlineKeyboardText[i + 1].ToString(), out int num)))
                             {
-                                if (val[0] == '0')
-                                    val = val.Remove(0);
                                 if (year > 0)
                                 {
                                     if (month > 0)
@@ -105,14 +104,73 @@ namespace Notifications.BL.Commands
                             }
                         }
                     }
-                    if (year == 0 || month == 0 || day == 0)
+                    if (year <= 0 || month <= 0 || day <= 0)
                     {
                         await _botClient.SendTextMessageAsync(id, "Натисніть ще раз на кнопку \"Обрати свій варіант\" і введіть дату за форматом \"рік, місяць, день, година, хвилина\"");
+                        await cacheService.ClearActiveCacheEventCache();
+                        await cacheService.ClearEventFromCache();
                         return;
                     }
                     var @event = cacheService.GetEventFromCache().Result;
                     if (@event != null)
                     {
+                        if (month > 12)
+                        {
+                            await _botClient.SendTextMessageAsync(id, "Ви можете вказати \"місяць\" лише в діапазоні від 1 до 12 включно");
+                            await cacheService.ClearActiveCacheEventCache();
+                            await cacheService.ClearEventFromCache();
+                            return;
+                        }
+                        if (month == 1 && day > 31 || month == 3 && day > 31 || month == 5 && day > 31 || month == 7 && day > 31 || month == 8 && day > 31 || month == 10 && day > 31 || month == 12 && day > 31)
+                        {
+                            await _botClient.SendTextMessageAsync(id, "Вказаний вами \"місяць\" містить тільки 31 добу!");
+                            await cacheService.ClearActiveCacheEventCache();
+                            await cacheService.ClearEventFromCache();
+                            return;
+                        }
+                        else if (month == 4 && day > 30 || month == 6 && day > 30 || month == 9 && day > 30 || month == 11 && day > 30)
+                        {
+                            await _botClient.SendTextMessageAsync(id, "Вказаний вами \"місяць\" містить тільки 30 діб!");
+                            await cacheService.ClearActiveCacheEventCache();
+                            await cacheService.ClearEventFromCache();
+                            return;
+                        }
+                        else if (month == 2 && day > 29 && year % 4 == 0)
+                        {
+                            await _botClient.SendTextMessageAsync(id, "Вказаний вами \"місяць\" містить тільки 29 діб у зазначений вами \"рік\"!");
+                            await cacheService.ClearActiveCacheEventCache();
+                            await cacheService.ClearEventFromCache();
+                            return;
+                        }
+                        else if (month == 2 && day > 28 && year % 4 != 0)
+                        {
+                            await _botClient.SendTextMessageAsync(id, "Вказаний вами \"місяць\" містить тільки 28 діб у зазначений вами \"рік\"!");
+                            await cacheService.ClearActiveCacheEventCache();
+                            await cacheService.ClearEventFromCache();
+                            return;
+                        }
+                        if (day < 0)
+                        {
+                            await _botClient.SendTextMessageAsync(id, "Ви можете вказати \"день\" лише в діапазоні від 1 до 30 або 31 включно, залежності від місяця!");
+                            await cacheService.ClearActiveCacheEventCache();
+                            await cacheService.ClearEventFromCache();
+                            return;
+                        }
+                        if (hour >= 24 || hour < 0)
+                        {
+                            await _botClient.SendTextMessageAsync(id, "Ви можете вказати \"годину\" лише в діапазоні від 0 до 23 включно!");
+                            await cacheService.ClearActiveCacheEventCache();
+                            await cacheService.ClearEventFromCache();
+                            return;
+                        }
+                        if (minute >= 60 || minute < 0)
+                        {
+                            await _botClient.SendTextMessageAsync(id, "Ви можете вказати \"хвилину\" лише в діапазоні від 0 до 59 включно!");
+                            await cacheService.ClearActiveCacheEventCache();
+                            await cacheService.ClearEventFromCache();
+                            return;
+                        }    
+                        
                         var time = new DateTime(year, month, day, hour, minute, second);
 
                         if
@@ -136,7 +194,7 @@ namespace Notifications.BL.Commands
 
                         if (now > time)
                         {
-                            await _botClient.SendTextMessageAsync(id, "Вкажіть інший варіант отримання нагадувань, так як дана подія розпочнеться раніше за вказаний вами термін!");
+                            await _botClient.SendTextMessageAsync(id, "Вкажіть інший варіант отримання нагадувань, так як вказані вами дата і час вже минули!");
                             await cacheService.ClearActiveCacheEventCache();
                             await cacheService.ClearEventFromCache();
                             return;
@@ -145,40 +203,15 @@ namespace Notifications.BL.Commands
                         BackgroundJob.Schedule(
                             () => notificationsService.NotifyUser(@event, id.ToString()),
                             time);
-                        //string days = "днів";
-                        //string hours = "годин";
-                        //string minutes = "хвилин";
-                        //string seconds = "секунд";
-
-                        //if (timeToEvent.Days == 1)
-                        //    days = "день";
-                        //else if(timeToEvent.Days == 2 || timeToEvent.Days == 3 || timeToEvent.Days == 4)
-                        //    days = "дні";
-
-                        //if (timeToEvent.Hours == 1)
-                        //    hours = "годину";
-                        //else if (timeToEvent.Hours == 2 || timeToEvent.Hours == 3 || timeToEvent.Hours == 4)
-                        //    hours = "години";
-
-                        //if (timeToEvent.Minutes == 1)
-                        //    minutes = "хвилину";
-                        //else if (timeToEvent.Minutes == 2 || timeToEvent.Minutes == 3 || timeToEvent.Minutes == 4)
-                        //    minutes = "хвилини";
-
-                        //if (timeToEvent.Seconds == 1)
-                        //    seconds = "секунду";
-                        //else if (timeToEvent.Seconds == 2 || timeToEvent.Seconds == 3 || timeToEvent.Seconds == 4)
-                        //    seconds = "секунди";
-
-                        //await _botClient.SendTextMessageAsync(id, $"Чудово! Тепер ви отримаєте нагадування про подію \"{@event.Title}\" за {timeToEvent.Days} {days}," +
-                        //    $" {timeToEvent.Hours} {hours}, {timeToEvent.Minutes} {minutes}, {timeToEvent.Seconds} {seconds} до її початку!");
-                        await _botClient.SendTextMessageAsync(id, $"Чудово! Тепер ви отримаєте нагадування про подію \"{@event.Title}\" {time}");
+                        await _botClient.SendTextMessageAsync(id, $"Чудово! Тепер ви отримаєте нагадування про подію \"{@event.Title}\" ({time}).\nПримітка: Сповіщення здійснюватимуться за Києвським часом!");
                         await cacheService.ClearActiveCacheEventCache();
                         await cacheService.ClearEventFromCache();
                     }
                     else
                     {
-                        await _botClient.SendTextMessageAsync(id, "Упс, щось пішло не так!");
+                        await _botClient.SendTextMessageAsync(id, "Вибачте, щось пішло не так! Спробуйте ще раз натиснути на кнопку \"Обрати свій варіант\" та ввести дані згідно вказаного формату.");
+                        await cacheService.ClearActiveCacheEventCache();
+                        await cacheService.ClearEventFromCache();
                         return;
                     }
                 }
@@ -212,7 +245,7 @@ namespace Notifications.BL.Commands
                                                     () => notificationsService.NotifyUser(item, id.ToString()),
                                                     timeToEvent);
 
-                                                await _botClient.SendTextMessageAsync(id, $"Чудово! Тепер ви отримаєте нагадування про подію за тиждень ({timeToEvent} днів) до її початку!");
+                                                await _botClient.SendTextMessageAsync(id, $"Чудово! Тепер ви отримаєте нагадування про подію за тиждень ({timeToEvent}) до її початку!\nПримітка: Сповіщення здійснюватимуться за Києвським часом!");
                                                 return;
                                             }
                                         case "Day":
@@ -229,7 +262,7 @@ namespace Notifications.BL.Commands
                                                     () => notificationsService.NotifyUser(item, id.ToString()),
                                                     timeToEvent);
 
-                                                await _botClient.SendTextMessageAsync(id, $"Чудово! Тепер ви отримаєте нагадування про подію за день \"{timeToEvent}\" до її початку!");
+                                                await _botClient.SendTextMessageAsync(id, $"Чудово! Тепер ви отримаєте нагадування про подію за день ({timeToEvent}) до її початку!\nПримітка: Сповіщення здійснюватимуться за Києвським часом!");
                                                 return;
                                             }
                                         case "Hour":
@@ -238,7 +271,7 @@ namespace Notifications.BL.Commands
 
                                                 if (now > timeToEvent)
                                                 {
-                                                    await _botClient.SendTextMessageAsync(id, "Виберіть інший варіант отримання нагадувань, так як дана подія розпочнеться раніше за вказаний вами термін!");
+                                                    await _botClient.SendTextMessageAsync(id, "Виберіть інший варіант отримання нагадувань, так як дана подія розпочнеться раніше за вказаний вами термін!\nПримітка: Сповіщення здійснюватимуться за Києвським часом!");
                                                     return;
                                                 }
 
@@ -246,12 +279,12 @@ namespace Notifications.BL.Commands
                                                     () => notificationsService.NotifyUser(item, id.ToString()),
                                                     timeToEvent);
 
-                                                await _botClient.SendTextMessageAsync(id, $"Чудово! Тепер ви отримаєте нагадування про подію за годину \"{timeToEvent}\" до її початку!");
+                                                await _botClient.SendTextMessageAsync(id, $"Чудово! Тепер ви отримаєте нагадування про подію за годину ({timeToEvent}) до її початку!");
                                                 return;
                                             }
                                         case "Other":
                                             {
-                                                await _botClient.SendTextMessageAsync(id, "Вкажіть час у числовому форматі \"рік, місяць, день, година, хвилина\", коли ви хотіли б отримувати сповіщення про початок події \"" + item.Title + "\"");
+                                                await _botClient.SendTextMessageAsync(id, "Вкажіть час у числовому форматі {рік, місяць, день, година, хвилина}, коли ви хотіли б отримувати сповіщення про початок події \"" + item.Title + "\". Наприклад: \"2022, 10, 12, 15, 30\".\nПримітка: Сповіщення здійснюватимуться за Києвським часом!");
                                                 cacheService.ActiveCacheEvent(item.EventId.ToString() + "Активовано");
                                                 cacheService.SetEventToCache(item.EventId.ToString() + "Кеш", item);
                                                 return;
@@ -276,6 +309,21 @@ namespace Notifications.BL.Commands
                 await _botClient.SendTextMessageAsync(id, "Вибачте, але на даний момент список всіх наявних подій є порожнім!");
                 return;
             }
+        }
+        public enum Months
+        {
+            January,
+            February,
+            March,
+            April,
+            May,
+            June,
+            July,
+            August,
+            September,
+            October,
+            November,
+            December
         }
         public string removeLastCharsIfNotInt(string text)
         {

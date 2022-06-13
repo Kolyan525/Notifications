@@ -48,6 +48,16 @@ namespace Notifications.BL.Commands
                     if (item.Title == InlineKeyboardText)
                     {
                         var check = notificationsService.SubscriptionExists(item.EventId, id.ToString()).Result;
+                        if (data == "Notifications")
+                        {
+                            if (check == true)
+                            {
+                                await _botClient.SendTextMessageAsync(id, "Виберіть час, коли ви хотіли б отримувати сповіщення про початок події \"" + item.Title + "\"", replyMarkup: buttons);
+                                return;
+                            }
+                            else
+                                await _botClient.SendTextMessageAsync(id, "Щоб отримувати сповіщення про подію спочатку підпишіться на неї!");
+                        }
                         @event = item;
                         if (check == false)
                         {

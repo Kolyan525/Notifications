@@ -18,7 +18,12 @@ namespace Notifications.BL
                 new []
                 {
                     InlineKeyboardButton.WithCallbackData(text: "Відписатися", callbackData: "Unsubscribe")
+                },
+                new InlineKeyboardButton[]
+                {
+                        InlineKeyboardButton.WithCallbackData(text: "Отримати сповіщення", callbackData: "Notifications")
                 }
+
             });
             public static InlineKeyboardMarkup ButtonsWithSubscription = new(new[]
             {
@@ -36,6 +41,10 @@ namespace Notifications.BL
                     new InlineKeyboardButton[]
                     {
                         InlineKeyboardButton.WithCallbackData(text: "Відписатися", callbackData: "Unsubscribe")
+                    },
+                    new InlineKeyboardButton[]
+                    {
+                        InlineKeyboardButton.WithCallbackData(text: "Отримати сповіщення", callbackData: "Notifications")
                     },
                     new InlineKeyboardButton[]
                     {

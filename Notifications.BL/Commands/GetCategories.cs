@@ -493,6 +493,17 @@ namespace Notifications.BL.Commands
                     parseMode: ParseMode.Html);
             }
         }
+        private bool checkEvent(IList<DAL.Models.Event> EventList, string text)
+        {
+            //if (text.First() == '\n')
+            //    text = text.Remove(0);
+            foreach (var item in EventList)
+            {
+                if (item.Title == text)
+                    return true;
+            }
+            return false;
+        }
         public string NextCategoryEvents(string updateData, int k, List<EventCategory> EventCategoriesList, string eventsFromCallbackQueryText, string eventTitleForCheck,
             IList<DAL.Models.Event> AllEventList, DAL.Models.Event @event, string eventsOfCategory)
         {
@@ -509,7 +520,10 @@ namespace Notifications.BL.Commands
                     {
                         eventTitleForCheck += eventsFromCallbackQueryText[item];
 
-                        bool ch = AllEventList.Where(x => x.Title == eventTitleForCheck).Any();
+                        if (eventTitleForCheck.First() == '\n')
+                            eventTitleForCheck = eventTitleForCheck.Remove(0);
+                        //bool ch = AllEventList.Where(x => x.Title == eventTitleForCheck).Any();
+                        bool ch = checkEvent(AllEventList, eventTitleForCheck);
                         if (ch)
                         {
                             if (item == eventsFromCallbackQueryText.Length - 1)

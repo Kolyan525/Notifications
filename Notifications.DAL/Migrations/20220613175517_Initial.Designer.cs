@@ -12,8 +12,8 @@ using Notifications.DAL.Models;
 namespace Notifications.DAL.Migrations
 {
     [DbContext(typeof(NotificationsContext))]
-    [Migration("20220529202010_Fixed typo in Refresh tokens table")]
-    partial class FixedtypoinRefreshtokenstable
+    [Migration("20220613175517_Initial")]
+    partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -468,7 +468,7 @@ namespace Notifications.DAL.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Users");
+                    b.ToTable("TelegramUsers");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
