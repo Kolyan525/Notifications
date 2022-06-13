@@ -32,6 +32,11 @@ ngrok http --host-header=localhost 60043
 "DefaultConnection": "Data Source=.\\SQLEXPRESS;Initial Catalog=НазваБД;Integrated Security=True;MultipleActiveResultSets=True;"
 ```
 
+Та в поле Url вставити раніше скопійовану адресу, вона повинна закінчуватись на "/":
+```
+"Url": "https://6e4b-87-196-72-94.eu.ngrok.io/"
+```
+
 У Visual Studio 2022, перейти у View -> Other Windows -> Package Manager Console. У консолі що відкрилась ввести наступну команду:
 ```
 update-database
