@@ -82,7 +82,7 @@ Go to Notification.Api project, change bot key in appsettings.json:
 
 Set appropriate database name:
 ```
-"DefaultConnection": "Data Source=.\\SQLEXPRESS;Initial Catalog=**НазваБД**;Integrated Security=True;MultipleActiveResultSets=True;"
+"DefaultConnection": "Data Source=.\\SQLEXPRESS;Initial Catalog=**DBName**;Integrated Security=True;MultipleActiveResultSets=True;"
 ```
 
 And paste the previous copied Url address, it should end with "/":
